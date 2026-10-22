@@ -27,7 +27,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
 
 ## Steps
 
-1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
+1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the start time in UTC (`date -u +%Y-%m-%dT%H:%M:%SZ`), the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
    - Use the `kit_version` and `context_hash` that `triage_check.py` reports in step 2 when you write `findings.json`.
    - **Size check.** Run `python3 audit-kit/tools/size_check.py --json` (add `--threshold <n>` if the project context sets a size warning threshold) and keep the result for `findings.json`. If it reports `over_threshold` and every auditor of a Full audit is about to run, show the size in one line and ask whether to continue, switch to Standard or stop. Otherwise mention the size in one line and carry on. If Python is missing, record the code size as not available.
 2. **Triage.** Run `python3 audit-kit/tools/triage_check.py --mode <standard|full> --tool "<tool>" --model "<model>"` (add `--fresh` if the user asked for a fresh audit). Its JSON is binding; never override it with your own judgement.
@@ -47,13 +47,15 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    - If the user later disagrees with a rejection ("reinstate SEC-002"), move it back into the findings with verification "Reinstated by user", re-score, and rewrite `AUDIT.md`, `findings.json` and the tracker.
 6. **Deduplicate and re-score.** When two reports describe the same root cause, keep the finding in the most relevant dimension and mention the other ID under cross-cutting themes. Then re-score every dimension that gained or lost a finding, or had one rejected or downgraded by the verifier, using the scale in `audit-kit/RULES.md`, and record each change under "Score adjustments" in `AUDIT.md` (auditor's score, final score, reason). Use the final scores everywhere else. Move any finding that rests only on memory or notes, not on the repository, to "To verify". Carried-over dimensions keep their score and findings unless a duplicate with a new finding forces a change, which you record under "Score adjustments".
 7. **Write `audit/AUDIT.md`** using `audit-kit/templates/AUDIT.md`. The overall score is the average of the dimensions in the mode that were run or carried over, to one decimal. Dimensions never audited show "Not audited". Mark carried-over dimensions with the commit, date, tool and model of their last real run.
-8. **Write `audit/findings.json`** with this structure:
+8. **Write `audit/findings.json`.** First run `python3 audit-kit/tools/usage_report.py --since <start time from step 1>` and keep its JSON for the `usage` field. Never estimate or invent token figures: if the script reports `"available": false`, store that. Then write the file with this structure:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.2.1",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.3.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
+     "run_type": "Fresh",
+     "usage": {"available": true, "source": "Claude Code session files", "totals": {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0, "total_tokens": 0}, "models": ["claude-opus-5-5"], "agents": []},
      "code_size": {"files": 120, "lines": 15400, "estimated_tokens": 160000, "method": "4 characters per token (model-neutral estimate)"},
      "scores": {"Security": 6, "Reliability": 7},
      "dimensions": {
@@ -75,6 +77,8 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    Dimension names must match the table in `audit-kit/RULES.md` exactly. Use the final scores, and leave "To verify" items out.
    - Each finding has `verification`: `Confirmed`, `Downgraded`, `Inconclusive`, `Reinstated by user` or `Not checked` (Medium and Low). Downgraded findings also have `original_severity`. Carried-over findings keep theirs.
    - `rejected` lists the findings the verifier rejected in this run and those carried over from dimensions that did not run, each with `id`, `dimension`, `title`, `location` and `reason`. They never count in scores.
+   - `run_type` is `Fresh` or `Incremental`.
+   - `usage` is the output of `usage_report.py`, unchanged. Together with `model` and `code_size`, it lets the user work out the cost of a run outside the kit.
    - `code_size` copies `files`, `lines`, `estimated_tokens` and `method` from the size check, or is `"not available"`. Together with `model`, it lets the user estimate the cost of future runs.
    - `context_hash` is the hash reported by `triage_check.py`, so the next run can tell whether the project context changed.
    - `commit` and `date` at the top are this run's. In `dimensions`, a dimension that ran gets this run's commit, date, tool and model; a carried-over dimension keeps those of its last real run, so the 30-day rule counts from the last real check.
@@ -88,6 +92,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    <Dimension>: <score>   (one line each; add "carried over" where it applies)
    Critical: <n> · High: <n> · To verify: <n>
    Verifier: <checked> checked · <rejected> rejected · <downgraded> downgraded
+   Tokens: <total> (input <n> · output <n> · cache write <n> · cache read <n>) or "not available"
    Files: audit/AUDIT.md · audit/audit-tracker.xlsx
    ```
 

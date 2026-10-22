@@ -67,6 +67,41 @@ def verification_label(f):
     return v
 
 
+RUN_LOG = ["Date", "Commit", "Mode", "Run type", "Tool", "Model", "Kit version",
+           "Code files", "Code tokens (est.)", "Auditors run", "Input tokens",
+           "Output tokens", "Cache write tokens", "Cache read tokens", "Total tokens"]
+
+
+def read_run_log(path):
+    if not os.path.exists(path):
+        return []
+    wb = load_workbook(path)
+    if "Run log" not in wb.sheetnames:
+        return []
+    ws = wb["Run log"]
+    header = [c.value for c in ws[1]]
+    return [dict(zip(header, v)) for v in ws.iter_rows(min_row=2, values_only=True) if any(v)]
+
+
+def run_log_row(data):
+    size = data.get("code_size") if isinstance(data.get("code_size"), dict) else {}
+    usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
+    tot = usage.get("totals", {}) if usage.get("available") else {}
+    dims = data.get("dimensions", {})
+    ran = sum(1 for d in dims.values() if isinstance(d, dict) and not d.get("carried_over")
+              and d.get("commit") == data.get("commit")) if dims else None
+    na = "n/a"
+    return {"Date": data.get("date"), "Commit": data.get("commit"), "Mode": data.get("mode"),
+            "Run type": data.get("run_type", ""), "Tool": data.get("tool", ""),
+            "Model": data.get("model", ""), "Kit version": data.get("kit_version", ""),
+            "Code files": size.get("files", na), "Code tokens (est.)": size.get("estimated_tokens", na),
+            "Auditors run": ran if ran is not None else na,
+            "Input tokens": tot.get("input_tokens", na), "Output tokens": tot.get("output_tokens", na),
+            "Cache write tokens": tot.get("cache_creation_input_tokens", na),
+            "Cache read tokens": tot.get("cache_read_input_tokens", na),
+            "Total tokens": tot.get("total_tokens", na)}
+
+
 def style_header(ws, ncols):
     for col in range(1, ncols + 1):
         cell = ws.cell(row=1, column=col)
@@ -81,6 +116,11 @@ def main():
         data = json.load(fh)
 
     old = read_existing(dst)
+    log = read_run_log(dst)
+    current = run_log_row(data)
+    key = lambda r: (str(r.get("Date")), str(r.get("Commit")), str(r.get("Mode")), str(r.get("Total tokens")))
+    if key(current) not in {key(r) for r in log}:
+        log.append(current)
     old_by_title = {(r.get("Title"), r.get("Location")): r for r in old.values()}
 
     rows, seen = [], set()
@@ -176,6 +216,18 @@ def main():
                             formula1=f"=Legend!${src_col}$2:${src_col}${len(values) + 1}")
         wf.add_data_validation(dv)
         dv.add(f"{col}2:{col}{end}")
+
+    # Run log: one row per audit, kept across runs
+    wr = wb.create_sheet("Run log")
+    wr.append(RUN_LOG)
+    style_header(wr, len(RUN_LOG))
+    for r in log:
+        wr.append([r.get(c) for c in RUN_LOG])
+    for i, c in enumerate(RUN_LOG, 1):
+        wr.column_dimensions[wr.cell(row=1, column=i).column_letter].width = max(12, len(c) + 2)
+    for row in wr.iter_rows(min_row=2):
+        for c in row:
+            c.font = BODY
 
     # Legend
     wl = wb.create_sheet("Legend")

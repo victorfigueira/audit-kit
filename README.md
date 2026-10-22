@@ -1,6 +1,6 @@
 # audit-kit
 
-Current version: **2.2.1** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.3.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
 A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.2.1` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -67,7 +67,7 @@ All outputs go to `audit/` in the project:
 - `findings.json`: consolidated findings, scores and the commit, date and kit version of each dimension's last run (input for the tracker and for incremental runs).
 - `triage.md`: the plan of the last incremental run.
 - `verification.md`: the skeptic verifier's verdict on each Critical and High finding. Rejected findings do not count.
-- `audit-tracker.xlsx`: Summary, Findings and Legend sheets. Your Status, Owner, dates, Jira key and Notes are kept across runs.
+- `audit-tracker.xlsx`: Summary, Findings, Run log and Legend sheets. Run log keeps one row per audit (tool, model, code size and tokens). Your Status, Owner, dates, Jira key and Notes are kept across runs.
 - `jira-proposal.md`: only when you run the Jira workflow.
 - `diff/`: Diff reviews only (`triage.md`, one report per auditor that ran, `DIFF-AUDIT.md`). Replaced on each Diff run; never feeds the tracker.
 
@@ -92,6 +92,7 @@ All outputs go to `audit/` in the project:
 | `docs/GUIDE.md` | User guide: how the kit works, commands, modes, updates and maintenance. |
 | `tools/generate_tracker.py` | Builds the Excel tracker (needs Python 3 and `openpyxl`). |
 | `tools/size_check.py` | Measures the code in scope and estimates its size in tokens. |
+| `tools/usage_report.py` | Sums the tokens an audit consumed, from Claude Code's session files. |
 | `tools/triage_check.py` | Deterministic checks that decide when an incremental audit must rerun auditors. |
 | `adapters/` | Thin wrappers for each tool; copied by `install.sh`. |
 | `install.sh` | Installs the adapters into the project. |

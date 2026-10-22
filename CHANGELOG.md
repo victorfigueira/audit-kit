@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0 – 23/10/2026
+- New `tools/usage_report.py`: sums the tokens a Standard or Full audit consumed from Claude Code's session files, split by type (input, output, cache write, cache read) and by agent. Other tools show "not available"; figures are never estimated.
+- Results go to `usage` in `findings.json`, a "Run data" section in `AUDIT.md`, the chat summary and a new Run log sheet in the tracker, which keeps one row per audit.
+- `findings.json` records `run_type` (Fresh or Incremental).
+
 ## 2.2.1 – 23/10/2026
 - Fix: `triage_check.py` treats a Critical or High finding as verified only if its verification is Confirmed, Downgraded, Inconclusive or Reinstated by user. Any other value sends it to the skeptic verifier.
 

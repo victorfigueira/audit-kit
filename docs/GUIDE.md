@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.2.1` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -345,7 +345,20 @@ Before each Standard or Full audit, `tools/size_check.py` measures the code in s
 
 If the code is over the threshold (400,000 estimated tokens by default, or the value in the project context) and a fresh Full audit is about to start, the manager asks whether to continue, switch to Standard or stop. Otherwise it reports the size in one line.
 
-The result is stored as `code_size` in `findings.json` and in the header of `AUDIT.md`, next to the tool and model. These records are meant for cost estimates outside the kit: with the model, the code size and (in a later version) the tokens each run consumed, you can estimate what auditing a project will cost. You can run the check on its own at any time:
+The result is stored as `code_size` in `findings.json` and in the header of `AUDIT.md`, next to the tool and model. These records are meant for cost estimates outside the kit: with the model, the code size and the tokens each run consumed, you can work out what a run cost and estimate what auditing another project will cost.
+
+### Tokens consumed
+
+At the end of each Standard or Full audit, `tools/usage_report.py` sums the tokens the run used. It reads Claude Code's local session files (`~/.claude/projects/<project>/`): the current session and its subagents, counting only records since the audit started. It reads numbers only and never copies prompts or code.
+
+The totals are split by type, because APIs price them differently: input, output, cache write and cache read. They are also split by agent (manager, each auditor, triage, verifier), matched from each subagent's first prompt.
+
+The result is stored as `usage` in `findings.json`, in the "Run data" section of `AUDIT.md` and as a row of the Run log sheet in the tracker, which keeps one row per audit across runs.
+
+Limits:
+- Only Claude Code writes these files. In Antigravity and Gemini CLI the usage shows "not available"; the kit never estimates it.
+- The session file format is not documented by Anthropic and may change. If the script stops finding data, it reports "not available" rather than wrong figures.
+- On a subscription plan, tokens consume quota rather than money. To turn them into euros, multiply each type by the API price of the recorded model. You can run the check on its own at any time:
 
 ```
 python3 audit-kit/tools/size_check.py
@@ -361,6 +374,7 @@ IDs follow `<PREFIX>-<NNN>`, for example `SEC-003`. When an auditor runs again, 
 
 - **Summary:** scores and counts by severity. Counts are formulas, so they update when you change a status.
 - **Findings:** one row per finding, with filters and drop-downs.
+- **Run log:** one row per audit with date, commit, mode, run type, tool, model, kit version, code size and tokens by type. Rows are kept across runs, so it is the history to use for cost estimates.
 - **Legend:** severities, statuses and effort sizes.
 
 The manual columns (Status, Owner, Target date, Closed date, Jira key, Notes) are kept between runs, matched by finding ID. A finding that disappears from a later audit stays in the sheet with the status "Not found in latest audit", so you can confirm it was fixed before closing it. A finding that the skeptic verifier rejects in a later run gets the status "False positive" with the reason. Neither status counts in the Summary totals. The last column, Verification, shows the verifier's verdict (for example "Downgraded from Critical"). Findings from carried-over dimensions are copied forward, so they are never marked by mistake.
@@ -468,6 +482,7 @@ This section is for whoever publishes new versions.
 | `tools/generate_tracker.py` | Excel tracker |
 | `tools/size_check.py` | Code size estimate |
 | `tools/triage_check.py` | Forced-run checks for incremental audits |
+| `tools/usage_report.py` | Tokens consumed by a run |
 | `adapters/` | Thin wrappers for each tool |
 | `get.sh`, `install.sh` | Download and install |
 | `VERSION`, `CHANGELOG.md` | Version and history |
