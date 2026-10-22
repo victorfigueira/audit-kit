@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1 – 22/10/2026
+- install.sh installs openpyxl when missing; a failure never stops the install.
+
 ## 1.2.0 – 22/10/2026
 - Findings must rest on repository evidence; anything from memory or notes goes to a new "To verify" section.
 - Manager re-scores dimensions after merging duplicates and records changes under "Score adjustments".

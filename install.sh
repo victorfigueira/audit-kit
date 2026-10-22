@@ -28,6 +28,20 @@ case "$TARGET" in claude|antigravity|gemini|all) ;; *)
   echo "Unknown target: $TARGET (use claude, antigravity, gemini or all)"; exit 1 ;; esac
 
 echo "Installing audit-kit into $ROOT"
+
+# Excel tracker dependency (optional: the audit runs without it)
+if command -v python3 >/dev/null; then
+  if python3 -c "import openpyxl" 2>/dev/null; then
+    echo "  openpyxl: already installed"
+  elif python3 -m pip install --user --quiet openpyxl 2>/dev/null \
+    || python3 -m pip install --user --quiet --break-system-packages openpyxl 2>/dev/null; then
+    echo "  openpyxl: installed"
+  else
+    echo "  openpyxl: could not install; run 'python3 -m pip install --user openpyxl' for the Excel tracker"
+  fi
+else
+  echo "  python3 not found: the Excel tracker will be skipped"
+fi
 mkdir -p audit
 if [ ! -f audit/project-context.md ]; then
   cp "$KIT/templates/project-context.md" audit/project-context.md
