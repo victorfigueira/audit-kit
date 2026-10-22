@@ -8,6 +8,15 @@ Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Tool: <to
 |---|---|---|---|---|---|---|
 | <dimension> | <n>/10 or Not audited | Audited or Carried over (<commit>, <date>, <tool> / <model>) | | | | |
 
+## Verification
+Checked: <n> Critical and High · Confirmed: <n> · Downgraded: <n> · Rejected: <n> · Inconclusive: <n>. Details in `audit/verification.md`.
+
+| Rejected | Title | Reason |
+|---|---|---|
+| <ID> | <title> | <counter-evidence in one line> |
+
+To reinstate a rejected finding, tell the agent "reinstate <ID>".
+
 ## Executive summary
 <5 to 8 sentences in plain language for a non-technical reader.>
 

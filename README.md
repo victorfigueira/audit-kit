@@ -1,8 +1,8 @@
 # audit-kit
 
-Current version: **1.7.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.0.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
-A portable code audit team: ten read-only auditors and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
+A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
 Drop this folder into the root of any project. It works with Claude Code, Antigravity (Gemini), Gemini CLI or any agent that can read files.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.7.0` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.0.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -66,6 +66,7 @@ All outputs go to `audit/` in the project:
 - `AUDIT.md`: executive summary, scores and priorities.
 - `findings.json`: consolidated findings, scores and the commit, date and kit version of each dimension's last run (input for the tracker and for incremental runs).
 - `triage.md`: the plan of the last incremental run.
+- `verification.md`: the skeptic verifier's verdict on each Critical and High finding. Rejected findings do not count.
 - `audit-tracker.xlsx`: Summary, Findings and Legend sheets. Your Status, Owner, dates, Jira key and Notes are kept across runs.
 - `jira-proposal.md`: only when you run the Jira workflow.
 - `diff/`: Diff reviews only (`triage.md`, one report per auditor that ran, `DIFF-AUDIT.md`). Replaced on each Diff run; never feeds the tracker.
@@ -84,7 +85,7 @@ All outputs go to `audit/` in the project:
 | `RUN.md` | Manager instructions: the orchestration. Start here. |
 | `VERSION` | Kit version, recorded in each audit. |
 | `RULES.md` | Shared rules, severity scale, scoring, finding IDs. |
-| `agents/` | One definition per auditor plus the triage agent (tool-agnostic). |
+| `agents/` | One definition per auditor plus the triage agent and the skeptic verifier (tool-agnostic). |
 | `templates/` | Report, summary and project context templates. |
 | `JIRA.md` | Optional ticket workflow. |
 | `UPDATE.md` | Update check used by `/audit-check-update`. |
@@ -98,7 +99,7 @@ All outputs go to `audit/` in the project:
 | Tool | Files created |
 |---|---|
 | All | `AGENTS.md` (shared rules section), `audit/project-context.md` |
-| Claude Code | `.claude/agents/*-auditor.md`, `.claude/agents/audit-triage.md`, `.claude/commands/*.md`, section in `CLAUDE.md` |
+| Claude Code | `.claude/agents/*-auditor.md`, `.claude/agents/audit-triage.md`, `.claude/agents/skeptic-verifier.md`, `.claude/commands/*.md`, section in `CLAUDE.md` |
 | Antigravity | `.agents/workflows/*.md` (older versions used `.agent/`; both are read) |
 | Gemini CLI | `.gemini/commands/*.toml` |
 

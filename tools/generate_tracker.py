@@ -26,13 +26,15 @@ DIMENSIONS = [
 ]
 SEVERITIES = ["Critical", "High", "Medium", "Low"]
 STATUSES = ["Open", "In progress", "Fixed", "Accepted risk",
-            "Not found in latest audit"]
+            "Not found in latest audit", "False positive"]
 COLUMNS = ["ID", "Dimension", "Severity", "Title", "Location",
            "Recommendation", "Effort", "Status", "Owner", "Target date",
-           "Closed date", "Jira key", "Notes"]
+           "Closed date", "Jira key", "Notes", "Verification"]
 MANUAL = ["Status", "Owner", "Target date", "Closed date", "Jira key", "Notes"]
-WIDTHS = [11, 28, 11, 45, 35, 55, 8, 22, 16, 13, 13, 12, 40]
+WIDTHS = [11, 28, 11, 45, 35, 55, 8, 22, 16, 13, 13, 12, 40, 24]
 NOT_FOUND = "Not found in latest audit"
+FALSE_POSITIVE = "False positive"
+CLOSED = (NOT_FOUND, FALSE_POSITIVE)
 
 FONT = "Arial"
 NAVY = PatternFill("solid", fgColor="1F3864")
@@ -56,6 +58,13 @@ def read_existing(path):
         if row.get("ID"):
             rows[row["ID"]] = row
     return rows
+
+
+def verification_label(f):
+    v = f.get("verification") or ""
+    if v == "Downgraded" and f.get("original_severity"):
+        return f"Downgraded from {f['original_severity']}"
+    return v
 
 
 def style_header(ws, ncols):
@@ -82,24 +91,30 @@ def main():
             "Severity": f.get("severity"), "Title": f.get("title"),
             "Location": f.get("location"), "Recommendation": f.get("recommendation"),
             "Effort": f.get("effort"), "Status": "Open",
+            "Verification": verification_label(f),
         }
         if prev:
             seen.add(prev["ID"])
             for k in MANUAL:
                 if prev.get(k) not in (None, ""):
                     row[k] = prev[k]
-            if row["Status"] == NOT_FOUND:
+            if row["Status"] in CLOSED:
                 row["Status"] = "Open"
         rows.append(row)
+    rejected = {r["id"]: r for r in data.get("rejected", []) if r.get("id")}
     for key, prev in old.items():
         if key not in seen and key not in {r["ID"] for r in rows}:
             prev = dict(prev)
             if prev.get("Status") not in ("Fixed", "Accepted risk"):
-                prev["Status"] = NOT_FOUND
+                if key in rejected:
+                    prev["Status"] = FALSE_POSITIVE
+                    prev["Verification"] = "Rejected: " + str(rejected[key].get("reason", ""))
+                else:
+                    prev["Status"] = NOT_FOUND
             rows.append(prev)
 
     sev_order = {s: i for i, s in enumerate(SEVERITIES)}
-    rows.sort(key=lambda r: (r.get("Status") == NOT_FOUND,
+    rows.sort(key=lambda r: (r.get("Status") in CLOSED,
                              sev_order.get(r.get("Severity"), 9), r["ID"]))
 
     wb = Workbook()
@@ -125,7 +140,7 @@ def main():
         ws.cell(row=r, column=2, value=scores.get(dim, "Not audited"))
         for j, sev in enumerate(SEVERITIES, 3):
             ws.cell(row=r, column=j,
-                    value=f'=COUNTIFS({rng("B")},$A{r},{rng("C")},"{sev}",{rng("H")},"<>{NOT_FOUND}")')
+                    value=f'=COUNTIFS({rng("B")},$A{r},{rng("C")},"{sev}",{rng("H")},"<>{NOT_FOUND}",{rng("H")},"<>{FALSE_POSITIVE}")')
         ws.cell(row=r, column=7, value=f"=SUM(C{r}:F{r})")
         ws.cell(row=r, column=8, value=f'=COUNTIFS({rng("B")},$A{r},{rng("H")},"Open")')
         ws.cell(row=r, column=9, value=f'=COUNTIFS({rng("B")},$A{r},{rng("H")},"Fixed")')
@@ -153,7 +168,7 @@ def main():
     for r in wf.iter_rows(min_row=2):
         for c in r:
             c.font, c.alignment = BODY, WRAP
-    wf.auto_filter.ref = f"A1:M{max(n, 2)}"
+    wf.auto_filter.ref = f"A1:N{max(n, 2)}"
     end = max(n, 2) + 500
     for col, src_col, values in (("B", "A", DIMENSIONS), ("C", "B", SEVERITIES),
                                  ("H", "C", STATUSES)):
@@ -183,7 +198,7 @@ def main():
         if i < len(scale):
             wl.cell(row=r, column=7, value=scale[i][0])
             wl.cell(row=r, column=8, value=scale[i][1])
-    wl.cell(row=14, column=1, value="Edit only Status, Owner, Target date, Closed date, Jira key and Notes in Findings. Other columns are rewritten on every audit.")
+    wl.cell(row=14, column=1, value="Edit only Status, Owner, Target date, Closed date, Jira key and Notes in Findings. Other columns are rewritten on every audit. Verification shows the verdict of the skeptic verifier for Critical and High findings.")
     for row in wl.iter_rows(min_row=2):
         for c in row:
             c.font = BODY

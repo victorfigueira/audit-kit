@@ -21,7 +21,7 @@ This guide explains how audit-kit works, how to use it day to day and how to mai
 
 ## 1. What audit-kit is
 
-audit-kit is a team of AI agents that audits a code repository. It has ten auditors, one per quality dimension, and a manager that runs them, merges their reports and scores the project from 1 to 10.
+audit-kit is a team of AI agents that audits a code repository. It has ten auditors, one per quality dimension, a skeptic verifier that tries to knock down every Critical and High finding, and a manager that runs them, merges their reports and scores the project from 1 to 10.
 
 It is plain Markdown plus two shell scripts and one Python script. Any agent tool that can read files can run it. Claude Code, Antigravity and Gemini CLI get slash commands through small adapter files.
 
@@ -52,8 +52,9 @@ flowchart TD
     D -- yes --> E[Triage: what changed since the last audit?]
     E --> G[Run affected auditors]
     E --> H[Carry over unaffected dimensions]
-    F --> I[Manager merges duplicates and re-scores]
-    G --> I
+    F --> V[Skeptic verifier challenges Critical and High findings]
+    G --> V
+    V --> I[Manager merges duplicates and re-scores]
     H --> I
     I --> J[AUDIT.md, findings.json, audit-tracker.xlsx]
 ```
@@ -69,6 +70,7 @@ sequenceDiagram
     participant G as GitHub
     participant T as Triage agent
     participant A as Auditors
+    participant V as Skeptic verifier
     participant X as Tracker script
 
     U->>M: /audit or /audit-full
@@ -96,6 +98,11 @@ sequenceDiagram
         M->>A: Run the selected auditors
         A-->>M: One report per dimension in audit/
     end
+    par One verifier per Critical or High finding
+        M->>V: The finding only, without the report
+        V-->>M: Rejected, Downgraded, Confirmed or Inconclusive
+    end
+    Note over M: Drops rejected findings and writes audit/verification.md
     Note over M: Merges duplicates, re-scores, adds carried-over dimensions
     M->>M: Writes AUDIT.md and findings.json
     M->>X: Run generate_tracker.py
@@ -105,11 +112,12 @@ sequenceDiagram
 
 ### Roles
 
-There are four roles:
+There are five roles:
 
 - **Manager.** The agent you talk to. It follows `RUN.md`: checks for updates, calls the triage agent, launches the auditors, merges their reports and writes the summary.
 - **Triage agent.** Reads the git changes since a reference point and decides which auditors need to run. It never judges code quality. Its rules are in `agents/triage.md`.
 - **Auditors.** One per dimension, each defined in `agents/<dimension>.md` with its scope, what is out of scope and which shell commands it may run.
+- **Skeptic verifier.** The red team. It receives each Critical and High finding on its own and tries to prove it is a false positive by reading the surrounding code. Only findings that survive reach `findings.json`, the tracker and the score. Its rules are in `agents/skeptic-verifier.md`.
 - **Tracker script.** `tools/generate_tracker.py` turns `audit/findings.json` into an Excel file and keeps your manual columns between runs.
 
 When the tool supports subagents (Claude Code), each auditor runs in its own context and in parallel. Otherwise the manager runs them one after another and rereads each auditor file, so findings from one dimension do not leak into another.
@@ -131,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.7.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.0.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -243,7 +251,8 @@ Gemini and Claude apply the same rules but do not produce identical reports: the
 2. It lists the changes and picks the auditors. Security always runs when code or configuration changed.
 3. The manager shows the plan and waits for you to confirm or change it.
 4. The selected auditors review only the changed files, using the rest of the code for context. Problems that already existed in untouched code are mentioned in one line, not raised as findings.
-5. The result is `audit/diff/DIFF-AUDIT.md` with a verdict:
+5. The skeptic verifier challenges every Critical and High finding, as in a normal audit.
+6. The result is `audit/diff/DIFF-AUDIT.md` with a verdict, based only on the findings that survive verification:
 
 | Verdict | When |
 |---|---|
@@ -257,6 +266,7 @@ sequenceDiagram
     participant M as Manager
     participant T as Triage agent
     participant A as Auditors
+    participant V as Skeptic verifier
 
     U->>M: /audit-diff develop
     Note over M: Update check, as in every audit
@@ -268,6 +278,8 @@ sequenceDiagram
         M->>A: Review the changed files
         A-->>M: Reports in audit/diff/
     end
+    M->>V: Each Critical or High finding
+    V-->>M: Verdicts
     M->>M: Writes DIFF-AUDIT.md with the verdict
     M->>U: Verdict and counts in chat
 ```
@@ -284,6 +296,7 @@ If the branch has more than 100 changed files or 3,000 changed lines, the triage
 | `audit/<dimension>.md` | One report per auditor, with every finding in detail |
 | `audit/findings.json` | Machine-readable findings and run metadata; input for the tracker and for incremental runs |
 | `audit/triage.md` | Plan of the last incremental run |
+| `audit/verification.md` | Verdicts of the skeptic verifier |
 | `audit/audit-tracker.xlsx` | Tracker for follow-up |
 
 ### Severities
@@ -305,6 +318,25 @@ A score can change without any code change, for example after a kit update with 
 
 Only the repository counts as evidence. Every finding cites a file and line. If an agent suspects something from memory, saved notes or earlier sessions, it lists it under "To verify" with the exact check that would confirm it (for example a command to run). These items have no ID, no severity and no effect on the score until you confirm them.
 
+### Verification of Critical and High findings
+
+Language models tend to report problems that are not there, especially in security and architecture, because finding something feels like doing the job. The skeptic verifier is the counterweight. For each Critical and High finding of the run it receives only the finding (never the auditor's report), reads the code around it and tries to prove it is a false positive:
+
+| Verdict | Meaning | Effect |
+|---|---|---|
+| Rejected | Concrete code proves the problem cannot happen, or the cited code does not exist | Leaves the findings and the score; listed in `AUDIT.md` |
+| Downgraded | Real, but a cited mitigation limits it | Kept with the lower severity |
+| Confirmed | The verifier could not refute it | Kept |
+| Inconclusive | Depends on something outside the repository | Kept, with the check that would settle it |
+
+The burden of proof is on the verifier. "Probably handled elsewhere" or "unlikely in practice" is not enough to reject: it must cite the `file:line` that blocks the problem. An accepted risk in the project context does not make a finding false; it stays confirmed.
+
+All verdicts are in `audit/verification.md`, and `AUDIT.md` lists every rejected finding with its reason. If you disagree with a rejection, tell the agent "reinstate SEC-002": the finding returns with the verification "Reinstated by user", the scores are recalculated and later runs do not challenge it again.
+
+Medium and Low findings are not verified ("Not checked"), and carried-over dimensions keep the verdicts of their last real run.
+
+The verifier runs on the same model as the auditors, which limits how independent it is. A second opinion from a different model is planned as a separate, optional step.
+
 ### Finding IDs
 
 IDs follow `<PREFIX>-<NNN>`, for example `SEC-003`. When an auditor runs again, it keeps the ID of every finding that is still present and numbers new findings after the highest previous ID. A fixed finding is listed under "Strengths" with its old ID.
@@ -317,7 +349,7 @@ IDs follow `<PREFIX>-<NNN>`, for example `SEC-003`. When an auditor runs again, 
 - **Findings:** one row per finding, with filters and drop-downs.
 - **Legend:** severities, statuses and effort sizes.
 
-The manual columns (Status, Owner, Target date, Closed date, Jira key, Notes) are kept between runs, matched by finding ID. A finding that disappears from a later audit stays in the sheet with the status "Not found in latest audit", so you can confirm it was fixed before closing it. Findings from carried-over dimensions are copied forward, so they are never marked by mistake.
+The manual columns (Status, Owner, Target date, Closed date, Jira key, Notes) are kept between runs, matched by finding ID. A finding that disappears from a later audit stays in the sheet with the status "Not found in latest audit", so you can confirm it was fixed before closing it. A finding that the skeptic verifier rejects in a later run gets the status "False positive" with the reason. Neither status counts in the Summary totals. The last column, Verification, shows the verifier's verdict (for example "Downgraded from Critical"). Findings from carried-over dimensions are copied forward, so they are never marked by mistake.
 
 The tracker needs Python 3 and `openpyxl`. To rebuild it by hand:
 
@@ -399,6 +431,7 @@ The installed version is recorded in each audit (`kit_version` in `findings.json
 | The commands do not appear | Reload the IDE window after installing or updating. |
 | No Excel file after the audit | `openpyxl` is missing. Run `python3 -m pip install --user openpyxl` (add `--break-system-packages` if pip reports an externally managed environment). |
 | "skip (not an audit-kit file)" during install | An older file with the same name exists. Delete or rename it and run the installer again. |
+| A finding you believe is real was rejected | Read its counter-evidence in `audit/verification.md`. If the verifier is wrong, tell the agent "reinstate <ID>". |
 | Every incremental run reruns all auditors | Check `audit/triage.md` for the forced-run reason: an old major version, a changed project context, a different tool or model or a missing commit. |
 | A finding the agent is sure about is under "To verify" | It does not rest on the repository. Run the suggested check; if it confirms the problem, tell the agent so it becomes a finding. |
 | The update check says GitHub cannot be reached | Network or proxy issue. The audit continues with the installed version. |
@@ -416,7 +449,7 @@ This section is for whoever publishes new versions.
 | `RULES.md` | Shared rules, severity scale, scoring, IDs |
 | `UPDATE.md` | Update check |
 | `JIRA.md` | Ticket workflow |
-| `agents/` | Ten auditors and the triage agent |
+| `agents/` | Ten auditors, the triage agent and the skeptic verifier |
 | `templates/` | Report, summary, diff summary and project context templates |
 | `tools/generate_tracker.py` | Excel tracker |
 | `adapters/` | Thin wrappers for each tool |

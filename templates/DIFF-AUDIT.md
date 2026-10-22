@@ -8,6 +8,9 @@ Base: <branch> (<short hash>) · Head: <branch> (<short hash>) · Tool: <tool> /
 |---|---|---|---|---|---|
 | <dimension> | Reviewed or Skipped (triage) | | | | |
 
+## Verification
+Checked: <n> · Confirmed: <n> · Downgraded: <n> · Rejected: <n> · Inconclusive: <n>. Details in `audit/diff/verification.md`.
+
 ## Summary
 <3 to 5 sentences: what the change does and what it puts at risk.>
 

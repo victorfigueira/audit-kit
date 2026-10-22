@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 – 22/10/2026
+- New skeptic verifier (red team) between the auditors and the manager. It receives each Critical and High finding on its own and tries to prove it is a false positive from the surrounding code. Rejected findings leave `findings.json`, the tracker and the score; downgraded ones keep the lower severity.
+- Verdicts in `audit/verification.md` (or `audit/diff/verification.md`); rejected findings listed in `AUDIT.md`. "reinstate <ID>" brings a rejected finding back.
+- Tracker: new Verification column and "False positive" status, excluded from the Summary totals.
+- Major version because it changes which findings count: the first audit after updating reruns every auditor.
+
 ## 1.7.0 – 22/10/2026
 - Each audit records the tool and model (`findings.json`, `AUDIT.md`, tracker, chat summary). Carried-over dimensions keep the tool and model of their last real run.
 - Incremental runs force every auditor when the tool or model changes, so scores from different models are not mixed. Audits without this information do not trigger the rule.

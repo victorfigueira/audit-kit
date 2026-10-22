@@ -19,6 +19,10 @@ These rules apply to every agent in this kit, whatever tool runs it.
 - Only the repository counts as evidence. Information from memory, saved notes, earlier sessions or general knowledge about the project cannot support a finding on its own. List it under "To verify" in the report, with the exact check that would confirm or rule it out (for example a command the user can run).
 - "To verify" items never get an ID, a severity or a place in the score. They become findings only when the user confirms them.
 
+## Verification
+- Every Critical and High finding is challenged by the skeptic verifier, which tries to prove it is a false positive by reading the surrounding code. Findings it rejects do not count.
+- Write findings so they can survive that check: exact location, the code path that leads to the problem, and why existing guards do not stop it.
+
 ## Sensitive data
 - Mask secrets: show at most the first 4 characters (for example `sk_l****`).
 - Never copy real personal data (names, emails, IPs, IDs). Describe the field and its location instead.
