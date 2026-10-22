@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.1` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.2` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -212,6 +212,8 @@ Once a project has an audit, `/audit` and `/audit-full` do not start from scratc
 - **Carry over:** nothing relevant changed. The dimension keeps its previous score, report and findings, marked "Carried over" with the commit and date of its last real run.
 
 The plan is shown in the chat and saved in `audit/triage.md`. The manager does not wait for confirmation.
+
+Files that git does not track yet (for example a new `ci.yml` you have not committed) cannot be compared with git, so the kit stores a hash of each one and treats it as changed only when its hash differs from the previous audit.
 
 ### What makes an auditor run
 

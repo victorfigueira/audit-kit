@@ -7,7 +7,7 @@
 Follow `audit-kit/RULES.md`. You review no code quality and raise no findings: you only build the plan.
 
 ## Tools
-Read, search and list files. Shell allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`.
+Read, search and list files (read-only shell commands allowed by `RULES.md` included). Other shell commands allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`.
 
 ## Reference point
 
@@ -16,7 +16,7 @@ Read, search and list files. Shell allowed only for these read-only git commands
 
 ## Steps
 
-1. **List the changes** since the reference point: committed changes with `git diff --name-status <ref>...HEAD` (Diff) or `git diff --name-status <commit> HEAD` (Incremental), uncommitted changes with `git diff --name-status HEAD`, and untracked files with `git ls-files --others --exclude-standard`. Get line counts with `--numstat`. Ignore paths listed as out of scope in the project context, and ignore `audit/` and `audit-kit/`.
+1. **List the changes** since the reference point: committed changes with `git diff --name-status <ref>...HEAD` (Diff) or `git diff --name-status <commit> HEAD` (Incremental), uncommitted changes with `git diff --name-status HEAD`, and untracked files with `git ls-files --others --exclude-standard`. In Incremental mode, count an untracked file as changed only if it appears in `untracked_changed` from `triage_check.py` (the manager passes it); the others are unchanged since the previous audit. Get line counts with `--numstat`. Ignore paths listed as out of scope in the project context, and ignore `audit/` and `audit-kit/`.
 2. **Classify each changed file**: source code, tests, dependency manifest or lockfile, CI/CD or deployment, infrastructure as code, database schema or migration, configuration or environment, documentation, assets.
 3. **Decide Run or Skip** for each candidate auditor: first the forced runs (Incremental only), then the change rules. Give a one-line reason that names the files or the rule involved.
 4. **Write the plan** with the template at the end of this file.

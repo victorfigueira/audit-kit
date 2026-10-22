@@ -42,6 +42,18 @@ def commit_exists(commit):
     return r.returncode == 0
 
 
+KIT_PATHS = ("audit/", "audit-kit/")
+
+
+def untracked_hashes():
+    r = subprocess.run(["git", "ls-files", "--others", "--exclude-standard", "-z"], capture_output=True)
+    out = {}
+    for path in r.stdout.decode("utf-8", "replace").split("\0"):
+        if path and not path.startswith(KIT_PATHS) and os.path.isfile(path):
+            out[path] = sha256(path)
+    return out
+
+
 def known(value):
     return value not in (None, "", "unknown")
 
@@ -62,7 +74,9 @@ def main():
     context_hash = sha256(args.context)
     out = {"kit_version": kit_version, "context_hash": context_hash,
            "fresh_required": False, "reasons": [], "notes": [],
-           "force_dimensions": {}, "unverified_findings": [], "previous_commit": None}
+           "force_dimensions": {}, "unverified_findings": [], "previous_commit": None,
+           "untracked_hashes": untracked_hashes(), "untracked_changed": []}
+    out["untracked_changed"] = sorted(out["untracked_hashes"])
 
     if args.fresh:
         out["reasons"].append("The user asked for a fresh audit.")
@@ -91,6 +105,12 @@ def main():
                     out["reasons"].append(f"The {field} changed ({before} -> {current}).")
             else:
                 out["notes"].append(f"{field.capitalize()} unknown on one side; {field} check skipped.")
+
+        before = prev.get("untracked_hashes")
+        if isinstance(before, dict):
+            out["untracked_changed"] = sorted(p for p, h in out["untracked_hashes"].items() if before.get(p) != h)
+        else:
+            out["notes"].append("Previous audit has no untracked file hashes; every untracked file counts as changed.")
 
         entries = prev.get("dimensions", {})
         today = dt.date.today()

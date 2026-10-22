@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.2 – 23/10/2026
+- Fix: untracked files count as changed only when their hash differs from the previous audit (`untracked_hashes` in `findings.json`). Before, any untracked file reran the auditors on every incremental audit.
+- Fix: auditors never audit the kit itself (its folders, the audit-kit sections of `AGENTS.md` and `CLAUDE.md`, and the installed adapters).
+- Read-only inspection commands (`ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`) are allowed for every agent.
+
 ## 2.3.1 – 23/10/2026
 - Fix: tokens are attributed to agents through a tag on the first line of every subagent prompt (`audit-kit-agent: <name>`) instead of keywords, which mislabelled verifier and triage runs as Security or Reliability. Keywords remain as a fallback, with corrected patterns.
 

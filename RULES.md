@@ -6,11 +6,12 @@ These rules apply to every agent in this kit, whatever tool runs it.
 - Read code, configuration, dependencies, docs, CI files and git history.
 - Write only inside the `audit/` folder at the project root.
 - Never modify project files, install packages, start servers, connect to databases or cloud accounts, or push to git.
-- Shell commands are allowed only where an agent file lists them explicitly.
+- Read-only inspection commands are always allowed: `ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`. Any other shell command is allowed only where an agent file lists it explicitly.
 
 ## Context
 - Before starting, read `audit/project-context.md`, the README and the main configuration files.
 - Skip paths listed as out of scope in the project context (generated code, vendor folders, build output).
+- Never audit the kit itself: `audit-kit/`, `audit/`, the audit-kit section of `AGENTS.md` and `CLAUDE.md`, and the adapters it installs (`.claude/agents/*-auditor.md`, `.claude/agents/audit-triage.md`, `.claude/agents/skeptic-verifier.md`, `.claude/commands/audit*`, `.agents/workflows/audit*`, `.gemini/commands/audit*`).
 
 ## Evidence
 - Every finding cites a location (`file:line`, or file and section).
