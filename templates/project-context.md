@@ -11,4 +11,5 @@ Fill this in once per project. Every auditor reads it first. Mark anything unkno
 - Known constraints or accepted risks:
 - Commands auditors may run (tests, coverage, dependency audit):
 - Out of scope paths (generated code, vendor folders, build output):
+- Size warning threshold (estimated tokens, default 400000):
 - Jira project key and issue type (optional):

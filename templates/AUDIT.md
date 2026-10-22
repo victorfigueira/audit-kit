@@ -1,6 +1,6 @@
 # Audit Report – <project>
 
-Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Tool: <tool> / <model> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
+Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Tool: <tool> / <model> · Code: <files> files, <lines> lines, ~<tokens> tokens · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
 
 ## Overall score: <x.x>/10
 
