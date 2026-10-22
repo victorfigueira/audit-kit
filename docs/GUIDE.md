@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.1.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.2.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -228,6 +228,8 @@ Each auditor has a rule based on the type of files that changed. A few examples:
 The full table is in `agents/triage.md`. When in doubt, the triage agent runs the auditor.
 
 ### When every auditor runs anyway
+
+These checks are made by a script, `tools/triage_check.py`, not by the agent, so they cannot be skipped by mistake. Its result is shown in the chat and in `audit/triage.md`.
 
 - You add `fresh` to the command.
 - There is no previous audit, or it was made with a different major kit version (see [Updates](#11-updates)).
@@ -333,7 +335,7 @@ The burden of proof is on the verifier. "Probably handled elsewhere" or "unlikel
 
 All verdicts are in `audit/verification.md`, and `AUDIT.md` lists every rejected finding with its reason. If you disagree with a rejection, tell the agent "reinstate SEC-002": the finding returns with the verification "Reinstated by user", the scores are recalculated and later runs do not challenge it again.
 
-Medium and Low findings are not verified ("Not checked"), and carried-over dimensions keep the verdicts of their last real run.
+Medium and Low findings are not verified ("Not checked"), and carried-over dimensions keep the verdicts of their last real run. Carried-over Critical and High findings that were never verified (for example, from audits before 2.0.0) are sent to the verifier on the next run.
 
 The verifier runs on the same model as the auditors, which limits how independent it is. A second opinion from a different model is planned as a separate, optional step.
 
@@ -465,6 +467,7 @@ This section is for whoever publishes new versions.
 | `templates/` | Report, summary, diff summary and project context templates |
 | `tools/generate_tracker.py` | Excel tracker |
 | `tools/size_check.py` | Code size estimate |
+| `tools/triage_check.py` | Forced-run checks for incremental audits |
 | `adapters/` | Thin wrappers for each tool |
 | `get.sh`, `install.sh` | Download and install |
 | `VERSION`, `CHANGELOG.md` | Version and history |

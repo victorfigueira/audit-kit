@@ -7,7 +7,7 @@
 Follow `audit-kit/RULES.md`. You review no code quality and raise no findings: you only build the plan.
 
 ## Tools
-Read, search and list files. Shell allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`. Also `shasum -a 256 audit/project-context.md` (or `sha256sum` where `shasum` is missing).
+Read, search and list files. Shell allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`.
 
 ## Reference point
 
@@ -23,16 +23,7 @@ Read, search and list files. Shell allowed only for these read-only git commands
 
 ## Forced runs (Incremental only)
 
-Run every candidate auditor, whatever the diff says, when:
-- The user asked for a fresh audit.
-- `audit/findings.json` has no `kit_version`, or its major version differs from `audit-kit/VERSION`. Changes to scoring or evidence rules always bump the major version.
-- The tool or model differs from `tool` and `model` in `audit/findings.json` (the manager tells you the current ones). Scores from different models are not comparable. If the previous file has no `tool` or `model`, or either side is `unknown`, this rule does not apply (say so in the notes).
-- The previous commit no longer exists (`git cat-file -e <commit>` fails, for example after a rebase).
-- `audit/project-context.md` changed since the previous audit: its SHA-256 hash differs from `context_hash` in `audit/findings.json`. If `context_hash` is missing, this rule does not apply (say so in the notes). Do not use git for this check: `audit/` is often ignored.
-
-Run a single auditor, whatever the diff says, when:
-- Its dimension has no entry in `dimensions` of `audit/findings.json` (never audited, or "Not completed").
-- It is Security or Open Source Health and its last run (the `date` of its entry) is more than 30 days old: new vulnerabilities appear without code changes.
+The manager runs `audit-kit/tools/triage_check.py` before calling you and gives you its `force_dimensions`. Mark every one of them Run, with the script's reason. If the script reported `fresh_required`, you are not called at all. Do not repeat or second-guess these checks (kit version, project context hash, tool and model, previous commit, 30-day rule): they are deterministic and the script owns them.
 
 ## Change rules
 

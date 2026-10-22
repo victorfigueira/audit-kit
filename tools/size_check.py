@@ -29,22 +29,41 @@ LOCKFILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock",
 
 
 def context_excludes(path="audit/project-context.md"):
-    """Read the 'Out of scope paths' line of the project context."""
+    """Read the 'Out of scope paths' entry of the project context.
+
+    Accepts a comma-separated value on the same line or indented bullets below it.
+    """
     if not os.path.exists(path):
         return []
     with open(path, encoding="utf-8") as fh:
-        for line in fh:
-            if line.lower().lstrip("- ").startswith("out of scope paths"):
-                value = line.split(":", 1)[1] if ":" in line else ""
-                items = [v.strip(" `'\"") for v in value.replace(";", ",").split(",")]
-                return [i for i in items if i and "TO CONFIRM" not in i.upper()]
-    return []
+        lines = fh.read().splitlines()
+    items = []
+    for i, line in enumerate(lines):
+        if not line.strip().lstrip("-*").strip().lower().startswith("out of scope paths"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        value = line.split(":", 1)[1] if ":" in line else ""
+        items += value.replace(";", ",").split(",")
+        for nxt in lines[i + 1:]:
+            if not nxt.strip():
+                continue
+            nind = len(nxt) - len(nxt.lstrip())
+            if nind <= indent:
+                break
+            items += nxt.strip().lstrip("-*").strip().replace(";", ",").split(",")
+        break
+    clean = []
+    for it in items:
+        it = it.strip().strip("`'\"").strip()
+        if it and "TO CONFIRM" not in it.upper():
+            clean.append(it)
+    return clean
 
 
 def to_patterns(items):
     pats = []
     for i in items:
-        i = i.split(" (")[0].strip().rstrip("/")
+        i = i.split(" (")[0].split(" - ")[0].strip().strip("`").rstrip("/")
         if not i:
             continue
         pats += [i, f"{i}/*", f"*/{i}/*"] if "*" not in i else [i]

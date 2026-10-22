@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.0 – 23/10/2026
+- Fix: the forced-run checks (kit major version, project context hash, tool and model, previous commit, 30-day rule, never-audited dimensions) now run in a script, `tools/triage_check.py`, whose result is binding. Before, the agent could skip them and carry over dimensions that had to run again.
+- Fix: carried-over Critical and High findings that were never verified go to the skeptic verifier.
+- Fix: `size_check.py` reads out-of-scope paths written as bullets under the "Out of scope paths" line.
+
 ## 2.1.0 – 22/10/2026
 - New `tools/size_check.py`: measures the code in scope (git files, without binaries, lockfiles, `audit/`, `audit-kit/` and out-of-scope paths) and estimates its size in tokens at 4 characters per token.
 - Standard and Full audits record the result as `code_size` in `findings.json` and in `AUDIT.md`. A fresh Full audit over the threshold asks before starting.
