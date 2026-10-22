@@ -1,5 +1,7 @@
 # audit-kit
 
+Current version: **1.2.1** (see `CHANGELOG.md`).
+
 A portable code audit team: ten read-only auditors and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
 Drop this folder into the root of any project. It works with Claude Code, Antigravity (Gemini), Gemini CLI or any agent that can read files.
@@ -14,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.1.0` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.2.1` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -97,7 +99,7 @@ Adapters only point to the files in this folder. To change how an auditor works,
 
 ## Updating
 
-Replace the `audit-kit/` folder with the new version. Adapters do not need reinstalling unless the changelog says so. `install.sh` never overwrites existing files; to refresh an adapter, delete it and run the script again.
+Run the install command again in the project root: it replaces `audit-kit/` with the latest version and leaves `audit/` untouched. Adapters do not need reinstalling unless the changelog says so. `install.sh` never overwrites existing files; to refresh an adapter, delete it and run the script again.
 
 ## Projects with an older audit setup
 
@@ -105,7 +107,7 @@ If the project already has auditors or commands with the same names (for example
 
 ## Requirements
 
-- Python 3 and `openpyxl` for the tracker (`pip3 install openpyxl`). Without them the audit still runs; only the Excel step is skipped.
+- Python 3 and `openpyxl` for the tracker. `install.sh` installs `openpyxl` if it is missing; if that fails, run `pip3 install openpyxl`. Without them the audit still runs; only the Excel step is skipped.
 - For Jira: the Atlassian Rovo MCP Server or a Jira API token in an environment variable.
 
 ## Safety
