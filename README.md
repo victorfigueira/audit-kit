@@ -1,6 +1,6 @@
 # audit-kit
 
-Current version: **2.1.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.0.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
 A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.1.0` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.0.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -91,7 +91,6 @@ All outputs go to `audit/` in the project:
 | `UPDATE.md` | Update check used by `/audit-check-update`. |
 | `docs/GUIDE.md` | User guide: how the kit works, commands, modes, updates and maintenance. |
 | `tools/generate_tracker.py` | Builds the Excel tracker (needs Python 3 and `openpyxl`). |
-| `tools/size_check.py` | Measures the code in scope and estimates its size in tokens. |
 | `adapters/` | Thin wrappers for each tool; copied by `install.sh`. |
 | `install.sh` | Installs the adapters into the project. |
 

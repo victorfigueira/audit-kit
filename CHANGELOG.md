@@ -1,10 +1,5 @@
 # Changelog
 
-## 2.1.0 – 22/10/2026
-- New `tools/size_check.py`: measures the code in scope (git files, without binaries, lockfiles, `audit/`, `audit-kit/` and out-of-scope paths) and estimates its size in tokens at 4 characters per token.
-- Standard and Full audits record the result as `code_size` in `findings.json` and in `AUDIT.md`. A fresh Full audit over the threshold asks before starting.
-- Project context template: new "Size warning threshold" field.
-
 ## 2.0.0 – 22/10/2026
 - New skeptic verifier (red team) between the auditors and the manager. It receives each Critical and High finding on its own and tries to prove it is a false positive from the surrounding code. Rejected findings leave `findings.json`, the tracker and the score; downgraded ones keep the lower severity.
 - Verdicts in `audit/verification.md` (or `audit/diff/verification.md`); rejected findings listed in `AUDIT.md`. "reinstate <ID>" brings a rejected finding back.

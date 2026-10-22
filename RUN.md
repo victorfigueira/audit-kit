@@ -28,7 +28,6 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
 ## Steps
 
 1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the SHA-256 hash of `audit/project-context.md` (`shasum -a 256`, or `sha256sum` where `shasum` is missing), and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
-   - **Size check.** Run `python3 audit-kit/tools/size_check.py --json` (add `--threshold <n>` if the project context sets a size warning threshold) and keep the result for `findings.json`. If it reports `over_threshold` and every auditor of a Full audit is about to run, show the size in one line and ask whether to continue, switch to Standard or stop. Otherwise mention the size in one line and carry on. If Python is missing, record the code size as not available.
 2. **Triage (incremental runs only).** If `audit/findings.json` exists and the user did not ask for a fresh audit, run the triage agent with `audit-kit/agents/triage.md` in Incremental mode, passing the tool and model recorded in step 1. It writes `audit/triage.md`. Show its plan table in chat and continue without waiting. Auditors marked Skip are carried over: do not run them, and keep their report in `audit/` untouched.
 3. **Run the auditors.** For each auditor marked Run (or every auditor in the mode on a fresh run), follow its file in `audit-kit/agents/` together with `audit-kit/RULES.md`.
    - If your tool supports subagents or parallel agents, run one per auditor, in parallel, each in its own context.
@@ -48,10 +47,9 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.1.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.0.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
-     "code_size": {"files": 120, "lines": 15400, "estimated_tokens": 160000, "method": "4 characters per token (model-neutral estimate)"},
      "scores": {"Security": 6, "Reliability": 7},
      "dimensions": {
        "Security": {"score": 6, "commit": "abc1234", "date": "YYYY-MM-DD", "tool": "Claude Code", "model": "claude-opus-5-5", "carried_over": false},
@@ -72,7 +70,6 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    Dimension names must match the table in `audit-kit/RULES.md` exactly. Use the final scores, and leave "To verify" items out.
    - Each finding has `verification`: `Confirmed`, `Downgraded`, `Inconclusive`, `Reinstated by user` or `Not checked` (Medium and Low). Downgraded findings also have `original_severity`. Carried-over findings keep theirs.
    - `rejected` lists the findings the verifier rejected in this run and those carried over from dimensions that did not run, each with `id`, `dimension`, `title`, `location` and `reason`. They never count in scores.
-   - `code_size` copies `files`, `lines`, `estimated_tokens` and `method` from the size check, or is `"not available"`. Together with `model`, it lets the user estimate the cost of future runs.
    - `context_hash` is the hash recorded in step 1, so the next run can tell whether the project context changed.
    - `commit` and `date` at the top are this run's. In `dimensions`, a dimension that ran gets this run's commit, date, tool and model; a carried-over dimension keeps those of its last real run, so the 30-day rule counts from the last real check.
    - Include the findings of carried-over dimensions, copied from the previous `findings.json`, so the tracker does not mark them "Not found in latest audit".

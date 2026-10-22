@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.1.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.0.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -337,18 +337,6 @@ Medium and Low findings are not verified ("Not checked"), and carried-over dimen
 
 The verifier runs on the same model as the auditors, which limits how independent it is. A second opinion from a different model is planned as a separate, optional step.
 
-### Code size and run data
-
-Before each Standard or Full audit, `tools/size_check.py` measures the code in scope: text files tracked or not ignored by git, without `audit/`, `audit-kit/`, binaries, lockfiles and the out-of-scope paths in the project context. It estimates the size in tokens at 4 characters per token, a rough figure that does not depend on the model.
-
-If the code is over the threshold (400,000 estimated tokens by default, or the value in the project context) and a fresh Full audit is about to start, the manager asks whether to continue, switch to Standard or stop. Otherwise it reports the size in one line.
-
-The result is stored as `code_size` in `findings.json` and in the header of `AUDIT.md`, next to the tool and model. These records are meant for cost estimates outside the kit: with the model, the code size and (in a later version) the tokens each run consumed, you can estimate what auditing a project will cost. You can run the check on its own at any time:
-
-```
-python3 audit-kit/tools/size_check.py
-```
-
 ### Finding IDs
 
 IDs follow `<PREFIX>-<NNN>`, for example `SEC-003`. When an auditor runs again, it keeps the ID of every finding that is still present and numbers new findings after the highest previous ID. A fixed finding is listed under "Strengths" with its old ID.
@@ -464,7 +452,6 @@ This section is for whoever publishes new versions.
 | `agents/` | Ten auditors, the triage agent and the skeptic verifier |
 | `templates/` | Report, summary, diff summary and project context templates |
 | `tools/generate_tracker.py` | Excel tracker |
-| `tools/size_check.py` | Code size estimate |
 | `adapters/` | Thin wrappers for each tool |
 | `get.sh`, `install.sh` | Download and install |
 | `VERSION`, `CHANGELOG.md` | Version and history |
