@@ -1,0 +1,2 @@
+description = "Run a Full code audit with the audit-kit team"
+prompt = "Run a Full audit by following audit-kit/RUN.md exactly. Run the auditors one after another unless you can start separate agents."

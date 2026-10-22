@@ -1,0 +1,2 @@
+description = "Propose and create Jira tickets from the latest audit"
+prompt = "Follow audit-kit/JIRA.md exactly. Stop after writing audit/jira-proposal.md and wait for my approval."
