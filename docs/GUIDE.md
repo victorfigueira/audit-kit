@@ -1,0 +1,436 @@
+# audit-kit user guide
+
+This guide explains how audit-kit works, how to use it day to day and how to maintain it. For a quick start, see the [README](../README.md). For the exact rules the agents follow, see [RULES.md](../RULES.md) and [RUN.md](../RUN.md).
+
+## Contents
+
+1. [What audit-kit is](#1-what-audit-kit-is)
+2. [How it works](#2-how-it-works)
+3. [Setting up a project](#3-setting-up-a-project)
+4. [Commands](#4-commands)
+5. [Audit modes](#5-audit-modes)
+6. [Incremental runs](#6-incremental-runs)
+7. [Diff reviews](#7-diff-reviews)
+8. [Reading the results](#8-reading-the-results)
+9. [The Excel tracker](#9-the-excel-tracker)
+10. [Jira tickets](#10-jira-tickets)
+11. [Updates](#11-updates)
+12. [Customising the kit](#12-customising-the-kit)
+13. [Troubleshooting](#13-troubleshooting)
+14. [Maintaining the kit](#14-maintaining-the-kit)
+
+## 1. What audit-kit is
+
+audit-kit is a team of AI agents that audits a code repository. It has ten auditors, one per quality dimension, and a manager that runs them, merges their reports and scores the project from 1 to 10.
+
+It is plain Markdown plus two shell scripts and one Python script. Any agent tool that can read files can run it. Claude Code, Antigravity and Gemini CLI get slash commands through small adapter files.
+
+The auditors are read-only. They write only inside the `audit/` folder and never change code, install packages, connect to databases or cloud accounts or push to git.
+
+| Dimension | Prefix | Mode |
+|---|---|---|
+| Maintainability | MNT | Standard and Full |
+| Open Source Health | OSS | Standard and Full |
+| Architecture | ARC | Standard and Full |
+| Security | SEC | Standard and Full |
+| Reliability | REL | Standard and Full |
+| Performance and Scalability | PRF | Full |
+| Testing and QA | TST | Full |
+| Observability and Operability | OBS | Full |
+| Data and Privacy Compliance | PRV | Full |
+| Infra, CI/CD and Cloud Cost | INF | Full |
+
+## 2. How it works
+
+```mermaid
+flowchart TD
+    A[Audit command] --> B{Newer kit version?}
+    B -- yes, user agrees --> C[Install update and reread RUN.md]
+    B -- no or declined --> D{Previous audit?}
+    C --> D
+    D -- no, or fresh --> F[Run every auditor in the mode]
+    D -- yes --> E[Triage: what changed since the last audit?]
+    E --> G[Run affected auditors]
+    E --> H[Carry over unaffected dimensions]
+    F --> I[Manager merges duplicates and re-scores]
+    G --> I
+    H --> I
+    I --> J[AUDIT.md, findings.json, audit-tracker.xlsx]
+```
+
+### Interaction flow
+
+The sequence below shows who talks to whom during `/audit` or `/audit-full`, and the only point where the manager waits for you: the update question.
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant M as Manager
+    participant G as GitHub
+    participant T as Triage agent
+    participant A as Auditors
+    participant X as Tracker script
+
+    U->>M: /audit or /audit-full
+    opt Unless no-update
+        M->>G: Read latest VERSION
+        G-->>M: Version number
+        opt Newer version available
+            M->>U: Summary of changes. Update now?
+            U->>M: Yes or no
+            opt User says yes
+                M->>G: Run get.sh
+                G-->>M: Kit and adapters updated
+                Note over M: Rereads RUN.md
+            end
+        end
+    end
+    alt Previous audit exists and no fresh
+        M->>T: Compare with the commit of the last audit
+        T-->>M: Plan in audit/triage.md
+        M->>U: Shows the plan without waiting
+    else First audit or fresh
+        Note over M: Every auditor in the mode runs
+    end
+    par One subagent per dimension
+        M->>A: Run the selected auditors
+        A-->>M: One report per dimension in audit/
+    end
+    Note over M: Merges duplicates, re-scores, adds carried-over dimensions
+    M->>M: Writes AUDIT.md and findings.json
+    M->>X: Run generate_tracker.py
+    X-->>M: audit-tracker.xlsx updated
+    M->>U: Summary in chat
+```
+
+### Roles
+
+There are four roles:
+
+- **Manager.** The agent you talk to. It follows `RUN.md`: checks for updates, calls the triage agent, launches the auditors, merges their reports and writes the summary.
+- **Triage agent.** Reads the git changes since a reference point and decides which auditors need to run. It never judges code quality. Its rules are in `agents/triage.md`.
+- **Auditors.** One per dimension, each defined in `agents/<dimension>.md` with its scope, what is out of scope and which shell commands it may run.
+- **Tracker script.** `tools/generate_tracker.py` turns `audit/findings.json` into an Excel file and keeps your manual columns between runs.
+
+When the tool supports subagents (Claude Code), each auditor runs in its own context and in parallel. Otherwise the manager runs them one after another and rereads each auditor file, so findings from one dimension do not leak into another.
+
+## 3. Setting up a project
+
+### Install
+
+From the project root:
+
+```
+curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
+```
+
+`get.sh` downloads the kit into `audit-kit/` and runs `install.sh`, which:
+
+- installs `openpyxl` for the Excel tracker if it is missing (a failure never stops the install);
+- creates `audit/project-context.md` if it does not exist;
+- adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
+- copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
+
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.6.2` before `bash`.
+
+Reload the IDE window afterwards so the new commands appear.
+
+If the project repository is public, keep the reports and the kit copy out of git:
+
+```
+echo "audit/" >> .gitignore
+echo "audit-kit/" >> .gitignore
+```
+
+### Fill in the project context
+
+`audit/project-context.md` is the most important input. Every auditor reads it first. Ask the agent to fill it in:
+
+```
+Fill in audit/project-context.md from the README, package.json, AGENTS.md and folder structure. Mark anything you are not sure about as TO CONFIRM.
+```
+
+Then review it and resolve every TO CONFIRM by hand. Pay attention to:
+
+- **Default branch:** the base for Diff reviews.
+- **Sensitive areas:** authentication, payments, personal data. Auditors look harder there.
+- **Commands auditors may run:** only commands that finish on their own and touch nothing outside the repository. Leave out watch modes and anything that connects to a database or cloud service.
+- **Out of scope paths:** generated code, vendor folders, build output.
+- **Jira project key and issue type:** only if you use the Jira workflow.
+
+### Run the first audit
+
+Run `/audit` for a Standard audit or `/audit-full` for all ten dimensions. The first audit of a project always runs every auditor in the mode.
+
+## 4. Commands
+
+| Command | What it does |
+|---|---|
+| `/audit` | Standard audit (5 dimensions), incremental when a previous audit exists |
+| `/audit-full` | Full audit (10 dimensions), incremental when a previous audit exists |
+| `/audit-diff [base]` | Reviews only the changes against a base branch and gives a merge verdict |
+| `/audit-jira` | Proposes Jira tickets from the latest audit and creates them after approval |
+| `/audit-check-update` | Checks for a newer kit version and installs it after confirmation |
+
+Arguments can be combined:
+
+| Argument | Applies to | Effect |
+|---|---|---|
+| `fresh` | `/audit`, `/audit-full` | Runs every auditor in the mode and skips triage |
+| `no-update` | `/audit`, `/audit-full`, `/audit-diff` | Skips the update check |
+| a branch name | `/audit-diff` | Uses that branch as the base |
+
+Examples: `/audit fresh`, `/audit-full fresh no-update`, `/audit-diff develop`.
+
+With an agent that has no slash commands, write the instruction in the chat, for example "Follow audit-kit/RUN.md, full mode".
+
+## 5. Audit modes
+
+| Mode | Auditors | Output | Use it for |
+|---|---|---|---|
+| Standard | 5 | Scores, tracker | Routine checks, before releases |
+| Full | 10 | Scores, tracker | Quarterly audits, before go-live, onboarding a project |
+| Diff | chosen by triage from the 10 | Merge verdict, no scores | Before merging a branch or opening a pull request |
+
+Standard and Full write to `audit/` and update the tracker. Diff writes to `audit/diff/` and never touches the main reports or the tracker.
+
+A Standard run after a Full one keeps the Full-only dimensions on record in `findings.json`, but leaves them out of the overall score.
+
+## 6. Incremental runs
+
+Once a project has an audit, `/audit` and `/audit-full` do not start from scratch. The triage agent compares the current code (including uncommitted and untracked files) with the commit of the previous audit, recorded in `audit/findings.json`, and decides for each dimension:
+
+- **Run:** the changes touch that dimension. The auditor runs again.
+- **Carry over:** nothing relevant changed. The dimension keeps its previous score, report and findings, marked "Carried over" with the commit and date of its last real run.
+
+The plan is shown in the chat and saved in `audit/triage.md`. The manager does not wait for confirmation.
+
+### What makes an auditor run
+
+Each auditor has a rule based on the type of files that changed. A few examples:
+
+| Changed | Auditors that run |
+|---|---|
+| Any source code | Security, Maintainability, Testing and QA, plus others depending on what the code does |
+| `package.json` or a lockfile | Open Source Health, Security |
+| CI pipeline or Dockerfile | Infra, CI/CD and Cloud Cost, Security |
+| A database migration | Data and Privacy Compliance, Security, others as relevant |
+| Documentation only | None |
+
+The full table is in `agents/triage.md`. When in doubt, the triage agent runs the auditor.
+
+### When every auditor runs anyway
+
+- You add `fresh` to the command.
+- There is no previous audit, or it was made with a different major kit version (see [Updates](#11-updates)).
+- The commit of the previous audit no longer exists, for example after a rebase.
+- `audit/project-context.md` changed. The kit compares a SHA-256 hash stored in `findings.json`, so this works even when `audit/` is in `.gitignore`.
+
+Security and Open Source Health also run again when their last real check is more than 30 days old, because new vulnerabilities are published in dependencies you have not touched.
+
+Use `fresh` for quarterly audits and before go-live, so every dimension is checked against the current code.
+
+## 7. Diff reviews
+
+`/audit-diff` answers one question: is this branch safe to merge?
+
+1. The triage agent finds the base branch: the one you name, then the default branch in the project context, then the remote's default branch, then `main`, `master` or `develop`.
+2. It lists the changes and picks the auditors. Security always runs when code or configuration changed.
+3. The manager shows the plan and waits for you to confirm or change it.
+4. The selected auditors review only the changed files, using the rest of the code for context. Problems that already existed in untouched code are mentioned in one line, not raised as findings.
+5. The result is `audit/diff/DIFF-AUDIT.md` with a verdict:
+
+| Verdict | When |
+|---|---|
+| Ready to merge | No Critical or High findings |
+| Fix before merge | At least one High |
+| Block merge | At least one Critical |
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant M as Manager
+    participant T as Triage agent
+    participant A as Auditors
+
+    U->>M: /audit-diff develop
+    Note over M: Update check, as in every audit
+    M->>T: Compare this branch with develop
+    T-->>M: Plan in audit/diff/triage.md
+    M->>U: Shows the plan and waits
+    U->>M: Confirm or change the plan
+    par Selected auditors only
+        M->>A: Review the changed files
+        A-->>M: Reports in audit/diff/
+    end
+    M->>M: Writes DIFF-AUDIT.md with the verdict
+    M->>U: Verdict and counts in chat
+```
+
+If the branch has more than 100 changed files or 3,000 changed lines, the triage agent recommends a Full audit instead. Each Diff run replaces the contents of `audit/diff/`.
+
+## 8. Reading the results
+
+### Files
+
+| File | Content |
+|---|---|
+| `audit/AUDIT.md` | Executive summary, scores, top priorities, quick wins, items to verify |
+| `audit/<dimension>.md` | One report per auditor, with every finding in detail |
+| `audit/findings.json` | Machine-readable findings and run metadata; input for the tracker and for incremental runs |
+| `audit/triage.md` | Plan of the last incremental run |
+| `audit/audit-tracker.xlsx` | Tracker for follow-up |
+
+### Severities
+
+| Severity | Meaning | Typical response |
+|---|---|---|
+| Critical | Exploitable, data loss, legal exposure or outage likely | Fix immediately |
+| High | Serious risk or blocker; likely to cause incidents | Fix this sprint |
+| Medium | Real issue with limited impact or a workaround | Plan this quarter |
+| Low | Improvement or hygiene | Backlog |
+
+### Scores
+
+Each dimension gets a score from 1 to 10 based on its findings (the scale is in `RULES.md`). The overall score is the average of the dimensions in the mode. When the manager merges duplicate findings across dimensions, it re-scores the dimensions affected and lists every change under "Score adjustments" in `AUDIT.md`.
+
+A score can change without any code change, for example after a kit update with new rules or when a finding moves to "To verify". `AUDIT.md` explains the reason.
+
+### Evidence and "To verify"
+
+Only the repository counts as evidence. Every finding cites a file and line. If an agent suspects something from memory, saved notes or earlier sessions, it lists it under "To verify" with the exact check that would confirm it (for example a command to run). These items have no ID, no severity and no effect on the score until you confirm them.
+
+### Finding IDs
+
+IDs follow `<PREFIX>-<NNN>`, for example `SEC-003`. When an auditor runs again, it keeps the ID of every finding that is still present and numbers new findings after the highest previous ID. A fixed finding is listed under "Strengths" with its old ID.
+
+## 9. The Excel tracker
+
+`audit/audit-tracker.xlsx` has three sheets:
+
+- **Summary:** scores and counts by severity. Counts are formulas, so they update when you change a status.
+- **Findings:** one row per finding, with filters and drop-downs.
+- **Legend:** severities, statuses and effort sizes.
+
+The manual columns (Status, Owner, Target date, Closed date, Jira key, Notes) are kept between runs, matched by finding ID. A finding that disappears from a later audit stays in the sheet with the status "Not found in latest audit", so you can confirm it was fixed before closing it. Findings from carried-over dimensions are copied forward, so they are never marked by mistake.
+
+The tracker needs Python 3 and `openpyxl`. To rebuild it by hand:
+
+```
+python3 audit-kit/tools/generate_tracker.py
+```
+
+## 10. Jira tickets
+
+After an audit, `/audit-jira` follows `JIRA.md`:
+
+1. Selects open Critical and High findings, plus Medium ones that block other work, and groups those with the same root cause (maximum 15 tickets).
+2. Searches Jira for existing issues on the same topic to avoid duplicates.
+3. Writes `audit/jira-proposal.md` and **stops for your approval**.
+4. Creates only the approved tickets and writes each key into the tracker.
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant M as Manager
+    participant J as Jira
+
+    U->>M: /audit-jira
+    M->>J: Search for existing issues
+    J-->>M: Possible duplicates
+    M->>M: Writes audit/jira-proposal.md
+    M->>U: Approve, edit or drop tickets?
+    U->>M: Approved list
+    M->>J: Create approved tickets only
+    J-->>M: Ticket keys
+    M->>M: Writes keys into the tracker
+    M->>U: Tickets created
+```
+
+It connects through the Atlassian Rovo MCP Server, or the Jira REST API with a token in the `JIRA_API_TOKEN` environment variable. Tokens are never written to any file. In Claude Code, add the MCP server per project rather than for the user, so work and personal Jira accounts do not mix:
+
+```
+claude mcp add --transport http jira https://mcp.atlassian.com/v1/mcp/authv2
+```
+
+Then run `/mcp` to sign in, and add the project key and issue type to `audit/project-context.md`.
+
+## 11. Updates
+
+### Automatic check
+
+Every audit command checks GitHub for a newer version first. If there is one, the manager summarises what is new and asks whether to update. If you agree, it installs the update, rereads `RUN.md` and runs the audit with the new version. If you decline, or GitHub cannot be reached, the audit runs with the installed version. Add `no-update` to skip the check, for example when you want two audits made with the same kit version.
+
+### Manual update
+
+- In the agent chat: `/audit-check-update`.
+- In the terminal, from the project root: the same `curl` command used to install.
+
+Both replace `audit-kit/`, refresh the kit's own adapters and leave `audit/` untouched. Reload the IDE window if the installer reports added or updated adapters.
+
+### Version numbers
+
+The kit follows `MAJOR.MINOR.PATCH`, stored in `VERSION`:
+
+| Change | Example | Effect on the next audit |
+|---|---|---|
+| Major | 1.x → 2.0 | Changes to scoring or evidence rules. Every auditor runs again, because old scores are not comparable. |
+| Minor | 1.5 → 1.6 | New features. Incremental runs continue. |
+| Patch | 1.6.0 → 1.6.1 | Fixes and documentation. Incremental runs continue. |
+
+The installed version is recorded in each audit (`kit_version` in `findings.json` and the header of `AUDIT.md`).
+
+## 12. Customising the kit
+
+- **Change how an auditor works:** edit `agents/<dimension>.md` in the kit repository and release a new version. Never edit the adapters in `.claude/`, `.agents/` or `.gemini/`; they only point to the kit and the installer refreshes them.
+- **Change the rules for one project only:** use `audit/project-context.md` (accepted risks, sensitive areas, out of scope paths, allowed commands). It is never overwritten.
+- **Projects with an older audit setup:** the installer refreshes files that point to `audit-kit/` and skips any other file with the same name, reporting "skip (not an audit-kit file)". Delete or rename the old files, then run the installer again.
+- **Comparing two tools:** move the previous results aside before the second run (`mv audit audit-gemini`, then recreate `audit/` with the project context), so the runs do not overwrite each other.
+
+## 13. Troubleshooting
+
+| Problem | Cause and fix |
+|---|---|
+| The commands do not appear | Reload the IDE window after installing or updating. |
+| No Excel file after the audit | `openpyxl` is missing. Run `python3 -m pip install --user openpyxl` (add `--break-system-packages` if pip reports an externally managed environment). |
+| "skip (not an audit-kit file)" during install | An older file with the same name exists. Delete or rename it and run the installer again. |
+| Every incremental run reruns all auditors | Check `audit/triage.md` for the forced-run reason: an old major version, a changed project context or a missing commit. |
+| A finding the agent is sure about is under "To verify" | It does not rest on the repository. Run the suggested check; if it confirms the problem, tell the agent so it becomes a finding. |
+| The update check says GitHub cannot be reached | Network or proxy issue. The audit continues with the installed version. |
+| A new auditor is not available as a subagent after an update | Claude Code loads subagents at session start. The manager runs it from its file this time; restart the session for the next audit. |
+
+## 14. Maintaining the kit
+
+This section is for whoever publishes new versions.
+
+### Repository layout
+
+| Path | Purpose |
+|---|---|
+| `RUN.md` | Manager orchestration |
+| `RULES.md` | Shared rules, severity scale, scoring, IDs |
+| `UPDATE.md` | Update check |
+| `JIRA.md` | Ticket workflow |
+| `agents/` | Ten auditors and the triage agent |
+| `templates/` | Report, summary, diff summary and project context templates |
+| `tools/generate_tracker.py` | Excel tracker |
+| `adapters/` | Thin wrappers for each tool |
+| `get.sh`, `install.sh` | Download and install |
+| `VERSION`, `CHANGELOG.md` | Version and history |
+| `docs/GUIDE.md` | This guide |
+
+### Releasing a version
+
+1. Make the change.
+2. Decide the version number with the table in [Version numbers](#version-numbers). Any change to scoring, severities or evidence rules is a major version.
+3. Update `VERSION`, the "Current version" line and the `AUDIT_KIT_REF` example in `README.md`, and add an entry at the top of `CHANGELOG.md`. The update check shows these entries to users, so write them for users.
+4. If a new adapter is needed, add it for all three tools.
+5. Test the installer in an empty git repository: `bash audit-kit/install.sh` twice (the second run should report "up to date").
+6. Commit, tag and push:
+
+```
+git add . && git commit -m "vX.Y.Z: short description"
+git tag vX.Y.Z && git push && git push --tags
+```
+
+Projects pick up the new version at their next audit.

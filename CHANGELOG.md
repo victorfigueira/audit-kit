@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.2 – 22/10/2026
+- User guide: sequence diagrams for the audit, Diff review and Jira interactions.
+
+## 1.6.1 – 22/10/2026
+- New user guide in `docs/GUIDE.md`, linked from the README.
+
 ## 1.6.0 – 22/10/2026
 - Every audit (Standard, Full, Diff) checks for a newer kit version first, summarises it and offers to install it before starting. `no-update` skips the check. If GitHub cannot be reached, the audit continues with the installed version.
 
