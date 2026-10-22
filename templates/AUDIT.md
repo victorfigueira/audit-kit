@@ -1,12 +1,12 @@
 # Audit Report – <project>
 
-Mode: Standard | Full · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
+Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
 
 ## Overall score: <x.x>/10
 
-| Dimension | Score | Critical | High | Medium | Low |
-|---|---|---|---|---|---|
-| <dimension> | <n>/10 or Not audited | | | | |
+| Dimension | Score | Status | Critical | High | Medium | Low |
+|---|---|---|---|---|---|---|
+| <dimension> | <n>/10 or Not audited | Audited or Carried over (<commit>, <date>) | | | | |
 
 ## Executive summary
 <5 to 8 sentences in plain language for a non-technical reader.>
@@ -25,6 +25,9 @@ Mode: Standard | Full · Branch: <branch> · Commit: <short hash> · Date: <YYYY
 
 ## Score adjustments
 <Only if the manager changed a score: dimension, auditor's score, final score, reason.>
+
+## Triage
+<Incremental runs only: which dimensions were carried over and why, from audit/triage.md.>
 
 ## Comparison with previous audit
 <Only if audit/audit-tracker.xlsx existed before this run: new, fixed and still open findings.>

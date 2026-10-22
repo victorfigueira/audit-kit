@@ -3,6 +3,7 @@
 Fill this in once per project. Every auditor reads it first. Mark anything unknown as TO CONFIRM.
 
 - Name and purpose:
+- Default branch (base for Diff reviews):
 - Stack (languages, frameworks, database, hosting):
 - Key modules and entry points:
 - Sensitive areas (authentication, payments, personal data):

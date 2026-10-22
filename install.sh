@@ -9,10 +9,20 @@ ROOT="$(dirname "$KIT")"
 cd "$ROOT"
 
 copy_dir() { # src dst
+  # Adapters that point to audit-kit/ are the kit's own and are refreshed.
+  # Any other file with the same name is left alone.
   mkdir -p "$2"
   for f in "$1"/*; do
     local dest="$2/$(basename "$f")"
-    if [ -e "$dest" ]; then echo "  skip (exists): $dest"; else cp "$f" "$dest"; echo "  added: $dest"; fi
+    if [ ! -e "$dest" ]; then
+      cp "$f" "$dest"; echo "  added: $dest"
+    elif cmp -s "$f" "$dest"; then
+      echo "  up to date: $dest"
+    elif grep -q "audit-kit/" "$dest"; then
+      cp "$f" "$dest"; echo "  updated: $dest"
+    else
+      echo "  skip (not an audit-kit file): $dest"
+    fi
   done
 }
 
@@ -27,7 +37,7 @@ add_rules() { # file
 case "$TARGET" in claude|antigravity|gemini|all) ;; *)
   echo "Unknown target: $TARGET (use claude, antigravity, gemini or all)"; exit 1 ;; esac
 
-echo "Installing audit-kit into $ROOT"
+echo "Installing audit-kit $(cat "$KIT/VERSION" 2>/dev/null) into $ROOT"
 
 # Excel tracker dependency (optional: the audit runs without it)
 if command -v python3 >/dev/null; then

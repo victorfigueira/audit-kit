@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.0 – 22/10/2026
+- Incremental runs: with a previous audit, `/audit` and `/audit-full` run the triage agent against the previous audit's commit and carry over unaffected dimensions (score, report and findings).
+- Forced full reruns: `fresh` argument, kit major/minor version change, project context change, previous commit missing. Security and Open Source Health rerun after 30 days.
+- `findings.json` records `kit_version` and, per dimension, the commit and date of its last real run.
+- Rerun auditors keep the IDs of findings still present, so tracker rows stay stable.
+- New `VERSION` file.
+- `install.sh` refreshes the kit's own adapters (files that point to `audit-kit/`) and still skips anything else.
+- Note: audits made before 1.4.0 have no kit version, so the first run after updating runs every auditor.
+
+## 1.3.0 – 22/10/2026
+- New Diff mode (`/audit-diff [base]`): a triage agent reads the changes against the base branch, picks the auditors and waits for confirmation.
+- Diff reviews write to `audit/diff/` with a merge verdict instead of scores; they never touch the main reports or the tracker.
+- Project context template has a "Default branch" field.
+- Existing projects: re-run the installer to add the new command and agent (existing files are kept).
+
 ## 1.2.1 – 22/10/2026
 - install.sh installs openpyxl when missing; a failure never stops the install.
 

@@ -1,2 +1,2 @@
-description = "Run a Standard code audit with the audit-kit team"
-prompt = "Run a Standard audit by following audit-kit/RUN.md exactly. Run the auditors one after another unless you can start separate agents."
+description = "Run a Standard code audit with the audit-kit team (incremental when a previous audit exists)"
+prompt = "Run a Standard audit by following audit-kit/RUN.md exactly. Arguments: {{args}} (if it says fresh, run every auditor and skip triage). Run the auditors one after another unless you can start separate agents."
