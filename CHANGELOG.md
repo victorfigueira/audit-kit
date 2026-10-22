@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0 – 22/10/2026
+- Every audit (Standard, Full, Diff) checks for a newer kit version first, summarises it and offers to install it before starting. `no-update` skips the check. If GitHub cannot be reached, the audit continues with the installed version.
+
+## 1.5.0 – 22/10/2026
+- New `/audit-check-update` command: compares the installed version with the latest on GitHub, summarises the changes and runs the installer after confirmation (`UPDATE.md`).
+- Incremental runs force every auditor only when the major version changes. From now on, changes to scoring or evidence rules bump the major version; new features and fixes do not force a full run.
+
+## 1.4.1 – 22/10/2026
+- Project context changes are detected with a SHA-256 hash stored in `findings.json` (`context_hash`) instead of git, so incremental runs work when `audit/` is in `.gitignore`.
+- Audits from 1.4.0 have no hash: the first run after updating records it without forcing a full run.
+
 ## 1.4.0 – 22/10/2026
 - Incremental runs: with a previous audit, `/audit` and `/audit-full` run the triage agent against the previous audit's commit and carry over unaffected dimensions (score, report and findings).
 - Forced full reruns: `fresh` argument, kit major/minor version change, project context change, previous commit missing. Security and Open Source Health rerun after 30 days.

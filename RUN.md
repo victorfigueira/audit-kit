@@ -2,6 +2,15 @@
 
 You are the audit manager. Any agent tool can follow this file. Read it fully before starting.
 
+## Before any audit: update check
+
+Applies to every mode, including Diff. Skip it only if the user wrote "no-update" with the command.
+
+1. Follow steps 1 to 3 of `audit-kit/UPDATE.md` (installed version, latest version, compare). If GitHub cannot be reached, say so in one line and continue with the installed version.
+2. If a newer version exists, follow steps 4 and 5 of `UPDATE.md`: summarise what is new and ask the user whether to update now. Wait for the answer.
+3. If the user says yes, finish `UPDATE.md` (install and report), then read this file again from the start, because it may have changed, and continue with the audit the user asked for. Skip the update check on this second reading. If the update added new subagent definitions that the current session cannot load yet, run those auditors by following their files in `audit-kit/agents/` instead.
+4. If the user says no, continue with the installed version.
+
 ## Modes
 
 | Mode | Auditors | When to use |
@@ -18,7 +27,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
 
 ## Steps
 
-1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash and the kit version from `audit-kit/VERSION`.
+1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the SHA-256 hash of `audit/project-context.md` (`shasum -a 256`, or `sha256sum` where `shasum` is missing).
 2. **Triage (incremental runs only).** If `audit/findings.json` exists and the user did not ask for a fresh audit, run the triage agent with `audit-kit/agents/triage.md` in Incremental mode. It writes `audit/triage.md`. Show its plan table in chat and continue without waiting. Auditors marked Skip are carried over: do not run them, and keep their report in `audit/` untouched.
 3. **Run the auditors.** For each auditor marked Run (or every auditor in the mode on a fresh run), follow its file in `audit-kit/agents/` together with `audit-kit/RULES.md`.
    - If your tool supports subagents or parallel agents, run one per auditor, in parallel, each in its own context.
@@ -32,7 +41,8 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "1.4.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "1.4.1",
+     "context_hash": "<sha256 of audit/project-context.md>",
      "scores": {"Security": 6, "Reliability": 7},
      "dimensions": {
        "Security": {"score": 6, "commit": "abc1234", "date": "YYYY-MM-DD", "carried_over": false},
@@ -46,6 +56,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    }
    ```
    Dimension names must match the table in `audit-kit/RULES.md` exactly. Use the final scores, and leave "To verify" items out.
+   - `context_hash` is the hash recorded in step 1, so the next run can tell whether the project context changed.
    - `commit` and `date` at the top are this run's. In `dimensions`, a dimension that ran gets this run's commit and date; a carried-over dimension keeps the commit and date of its last real run, so the 30-day rule counts from the last real check.
    - Include the findings of carried-over dimensions, copied from the previous `findings.json`, so the tracker does not mark them "Not found in latest audit".
    - Keep entries in `dimensions` for dimensions outside the current mode that the previous file had (for example Full dimensions during a Standard run), but leave them out of `scores` and the overall score.

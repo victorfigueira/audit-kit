@@ -1,5 +1,5 @@
 ---
 description: Run a Standard code audit with the audit-kit team (incremental when a previous audit exists)
-argument-hint: "[fresh]"
+argument-hint: "[fresh] [no-update]"
 ---
-Run a Standard audit by following `audit-kit/RUN.md` exactly. Arguments: $ARGUMENTS (if it says "fresh", run every auditor and skip triage). Launch the `audit-triage` subagent first when RUN.md calls for it, then each `*-auditor` subagent to run, in parallel where possible.
+Run a Standard audit by following `audit-kit/RUN.md` exactly. Arguments: $ARGUMENTS (if it says "fresh", run every auditor and skip triage; if it says "no-update", skip the update check). Launch the `audit-triage` subagent first when RUN.md calls for it, then each `*-auditor` subagent to run, in parallel where possible.

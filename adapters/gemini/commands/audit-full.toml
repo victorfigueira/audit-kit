@@ -1,2 +1,2 @@
 description = "Run a Full code audit with the audit-kit team (incremental when a previous audit exists)"
-prompt = "Run a Full audit by following audit-kit/RUN.md exactly. Arguments: {{args}} (if it says fresh, run every auditor and skip triage). Run the auditors one after another unless you can start separate agents."
+prompt = "Run a Full audit by following audit-kit/RUN.md exactly. Arguments: {{args}} (if it says fresh, run every auditor and skip triage; if it says no-update, skip the update check). Run the auditors one after another unless you can start separate agents."
