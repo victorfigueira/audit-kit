@@ -18,7 +18,7 @@ STANDARD = ["Maintainability", "Open Source Health", "Architecture", "Security",
 FULL = STANDARD + ["Performance and Scalability", "Testing and QA", "Observability and Operability",
                    "Data and Privacy Compliance", "Infra, CI/CD and Cloud Cost"]
 AGEING = {"Security": 30, "Open Source Health": 30}
-UNVERIFIED = (None, "", "Not checked")
+VERIFIED = ("Confirmed", "Downgraded", "Inconclusive", "Reinstated by user")
 
 
 def sha256(path):
@@ -108,7 +108,7 @@ def main():
                     out["force_dimensions"][d] = "Date of last real check unreadable."
         for f in prev.get("findings", []):
             if f.get("severity") in ("Critical", "High") and f.get("dimension") in dims \
-                    and f.get("verification") in UNVERIFIED:
+                    and f.get("verification") not in VERIFIED:
                 out["unverified_findings"].append(f.get("id"))
 
     out["fresh_required"] = bool(out["reasons"])

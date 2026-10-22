@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.2.1 – 23/10/2026
+- Fix: `triage_check.py` treats a Critical or High finding as verified only if its verification is Confirmed, Downgraded, Inconclusive or Reinstated by user. Any other value sends it to the skeptic verifier.
+
 ## 2.2.0 – 23/10/2026
 - Fix: the forced-run checks (kit major version, project context hash, tool and model, previous commit, 30-day rule, never-audited dimensions) now run in a script, `tools/triage_check.py`, whose result is binding. Before, the agent could skip them and carry over dimensions that had to run again.
 - Fix: carried-over Critical and High findings that were never verified go to the skeptic verifier.

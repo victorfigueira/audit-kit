@@ -51,7 +51,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.2.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.2.1",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "code_size": {"files": 120, "lines": 15400, "estimated_tokens": 160000, "method": "4 characters per token (model-neutral estimate)"},
