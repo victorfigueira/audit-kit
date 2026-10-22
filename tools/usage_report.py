@@ -17,9 +17,11 @@ import os
 import re
 
 TYPES = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
+TAG = re.compile(r"audit-kit-agent:\s*([a-z0-9-]+)", re.I)
+# Fallback only, for subagents started without the tag. Order matters.
 AGENT_HINTS = [
-    ("skeptic-verifier", r"skeptic verifier"),
-    ("audit-triage", r"triage agent"),
+    ("skeptic-verifier", r"skeptic[\s_-]*verifier|verification"),
+    ("audit-triage", r"\btriage\b"),
     ("maintainability", r"maintainability"),
     ("oss-health", r"open source health|oss-health"),
     ("architecture", r"architecture"),
@@ -59,7 +61,12 @@ def first_user_text(records):
 
 
 def agent_name(records, fallback):
-    text = first_user_text(records)[:2000].lower()
+    text = first_user_text(records)
+    tag = TAG.search(text[:500])
+    if tag:
+        name = tag.group(1).lower()
+        return name[:-len("-auditor")] if name.endswith("-auditor") else name
+    text = text[:300].lower()
     for name, pattern in AGENT_HINTS:
         if re.search(pattern, text):
             return name

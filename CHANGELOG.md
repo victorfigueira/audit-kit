@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.3.1 – 23/10/2026
+- Fix: tokens are attributed to agents through a tag on the first line of every subagent prompt (`audit-kit-agent: <name>`) instead of keywords, which mislabelled verifier and triage runs as Security or Reliability. Keywords remain as a fallback, with corrected patterns.
+
 ## 2.3.0 – 23/10/2026
 - New `tools/usage_report.py`: sums the tokens a Standard or Full audit consumed from Claude Code's session files, split by type (input, output, cache write, cache read) and by agent. Other tools show "not available"; figures are never estimated.
 - Results go to `usage` in `findings.json`, a "Run data" section in `AUDIT.md`, the chat summary and a new Run log sheet in the tracker, which keeps one row per audit.

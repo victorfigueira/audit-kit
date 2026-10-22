@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.1` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -351,7 +351,7 @@ The result is stored as `code_size` in `findings.json` and in the header of `AUD
 
 At the end of each Standard or Full audit, `tools/usage_report.py` sums the tokens the run used. It reads Claude Code's local session files (`~/.claude/projects/<project>/`): the current session and its subagents, counting only records since the audit started. It reads numbers only and never copies prompts or code.
 
-The totals are split by type, because APIs price them differently: input, output, cache write and cache read. They are also split by agent (manager, each auditor, triage, verifier), matched from each subagent's first prompt.
+The totals are split by type, because APIs price them differently: input, output, cache write and cache read. They are also split by agent (manager, each auditor, triage, verifier), identified by a tag the manager puts on the first line of every subagent prompt (`audit-kit-agent: <name>`).
 
 The result is stored as `usage` in `findings.json`, in the "Run data" section of `AUDIT.md` and as a row of the Run log sheet in the tracker, which keeps one row per audit across runs.
 

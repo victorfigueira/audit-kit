@@ -25,6 +25,10 @@ If the user did not say which mode, use Standard. Diff mode has its own steps (s
 
 Standard and Full are incremental when `audit/findings.json` exists: dimensions that the changes since the previous audit do not affect are carried over instead of audited again. The triage agent decides, following `audit-kit/agents/triage.md`. The run is fresh (every auditor of the mode runs) when there is no previous audit, when the user asks for a fresh audit (for example `/audit fresh`), or when the triage agent forces it. Use fresh runs for quarterly audits and before go-live.
 
+## Subagent prompts
+
+When you start any subagent (auditor, triage agent or skeptic verifier), make the first line of its prompt `audit-kit-agent: <name>`, where `<name>` is the agent file name without `.md` (for example `audit-kit-agent: security`, `audit-kit-agent: triage`, `audit-kit-agent: skeptic-verifier`). `usage_report.py` uses this line to attribute tokens to each agent.
+
 ## Steps
 
 1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the start time in UTC (`date -u +%Y-%m-%dT%H:%M:%SZ`), the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
@@ -51,7 +55,7 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.3.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.3.1",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
