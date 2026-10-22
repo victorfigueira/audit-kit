@@ -7,7 +7,7 @@
 Follow `audit-kit/RULES.md`. You review no code quality and raise no findings: you only build the plan.
 
 ## Tools
-Read, search and list files. Shell allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`.
+Read, search and list files. Shell allowed only for these read-only git commands: `git rev-parse`, `git cat-file -e`, `git symbolic-ref`, `git branch`, `git merge-base`, `git diff` (with `--name-status`, `--stat` or `--numstat`), `git ls-files --others --exclude-standard`, `git log --oneline`. Also `shasum -a 256 audit/project-context.md` (or `sha256sum` where `shasum` is missing).
 
 ## Reference point
 
@@ -25,9 +25,10 @@ Read, search and list files. Shell allowed only for these read-only git commands
 
 Run every candidate auditor, whatever the diff says, when:
 - The user asked for a fresh audit.
-- `audit/findings.json` has no `kit_version`, or its major or minor version differs from `audit-kit/VERSION` (scoring rules may have changed).
+- `audit/findings.json` has no `kit_version`, or its major version differs from `audit-kit/VERSION`. Changes to scoring or evidence rules always bump the major version.
+- The tool or model differs from `tool` and `model` in `audit/findings.json` (the manager tells you the current ones). Scores from different models are not comparable. If the previous file has no `tool` or `model`, or either side is `unknown`, this rule does not apply (say so in the notes).
 - The previous commit no longer exists (`git cat-file -e <commit>` fails, for example after a rebase).
-- `audit/project-context.md` changed since the previous audit (check its modification in git, or say "unknown" and run all if it is not tracked and you cannot tell).
+- `audit/project-context.md` changed since the previous audit: its SHA-256 hash differs from `context_hash` in `audit/findings.json`. If `context_hash` is missing, this rule does not apply (say so in the notes). Do not use git for this check: `audit/` is often ignored.
 
 Run a single auditor, whatever the diff says, when:
 - Its dimension has no entry in `dimensions` of `audit/findings.json` (never audited, or "Not completed").
@@ -59,7 +60,7 @@ In Incremental mode, Skip means "carry over": the manager reuses that dimension'
 ```
 # Triage plan
 
-Mode: Incremental (Standard | Full) | Diff · Reference: <previous audit commit or base branch> (<short hash>, <date>) · Head: <branch> (<short hash>) · Uncommitted changes: yes | no · Date: <YYYY-MM-DD>
+Mode: Incremental (Standard | Full) | Diff · Tool: <tool> / <model> · Reference: <previous audit commit or base branch> (<short hash>, <date>) · Head: <branch> (<short hash>) · Uncommitted changes: yes | no · Date: <YYYY-MM-DD>
 Changed: <n> files, +<n>/-<n> lines
 
 ## Plan

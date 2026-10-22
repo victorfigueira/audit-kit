@@ -1,6 +1,6 @@
 # audit-kit
 
-Current version: **1.6.2** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **1.7.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
 A portable code audit team: ten read-only auditors and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.6.2` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.7.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -74,7 +74,7 @@ All outputs go to `audit/` in the project:
 
 - **Standard** (5 auditors): Maintainability, Open Source Health, Architecture, Security, Reliability.
 - **Full** (10 auditors): the five above plus Performance and Scalability, Testing and QA, Observability and Operability, Data and Privacy Compliance, Infra, CI/CD and Cloud Cost.
-- **Incremental runs.** Once a project has an audit, `/audit` and `/audit-full` only rerun the dimensions affected by changes since that audit; the rest keep their previous score and findings, marked "Carried over". Every auditor runs again when you add `fresh`, when the kit's major version changes (scoring or evidence rules), when `audit/project-context.md` changes or when the previous commit is gone. Security and Open Source Health also run again when their last check is more than 30 days old. Use `fresh` for quarterly audits and before go-live.
+- **Incremental runs.** Once a project has an audit, `/audit` and `/audit-full` only rerun the dimensions affected by changes since that audit; the rest keep their previous score and findings, marked "Carried over". Every auditor runs again when you add `fresh`, when the kit's major version changes (scoring or evidence rules), when `audit/project-context.md` changes, when the tool or model differs from the previous audit or when the previous commit is gone. Security and Open Source Health also run again when their last check is more than 30 days old. Use `fresh` for quarterly audits and before go-live.
 - **Diff** (before a merge or pull request): a triage agent reads the changes against the base branch and picks which of the ten auditors to run (for example, Open Source Health only if a dependency file changed; Security whenever code or configuration changed). It shows the plan and waits for your confirmation. The result is a verdict (Ready to merge, Fix before merge, Block merge) instead of scores. The base branch defaults to the one in `audit/project-context.md`, then the remote default branch.
 
 ## Folder contents

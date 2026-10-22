@@ -27,8 +27,8 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
 
 ## Steps
 
-1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the SHA-256 hash of `audit/project-context.md` (`shasum -a 256`, or `sha256sum` where `shasum` is missing).
-2. **Triage (incremental runs only).** If `audit/findings.json` exists and the user did not ask for a fresh audit, run the triage agent with `audit-kit/agents/triage.md` in Incremental mode. It writes `audit/triage.md`. Show its plan table in chat and continue without waiting. Auditors marked Skip are carried over: do not run them, and keep their report in `audit/` untouched.
+1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the SHA-256 hash of `audit/project-context.md` (`shasum -a 256`, or `sha256sum` where `shasum` is missing), and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
+2. **Triage (incremental runs only).** If `audit/findings.json` exists and the user did not ask for a fresh audit, run the triage agent with `audit-kit/agents/triage.md` in Incremental mode, passing the tool and model recorded in step 1. It writes `audit/triage.md`. Show its plan table in chat and continue without waiting. Auditors marked Skip are carried over: do not run them, and keep their report in `audit/` untouched.
 3. **Run the auditors.** For each auditor marked Run (or every auditor in the mode on a fresh run), follow its file in `audit-kit/agents/` together with `audit-kit/RULES.md`.
    - If your tool supports subagents or parallel agents, run one per auditor, in parallel, each in its own context.
    - If it does not, run them one after another and start each with a fresh reading of its file, so findings do not leak between dimensions.
@@ -36,17 +36,18 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    - If the dimension has a previous report, the auditor reads it first and keeps the same ID for a finding that is still present, and numbers new findings after the highest previous ID. Fixed findings are listed under "Strengths" with their old ID. This keeps the tracker rows stable.
 4. **Check.** Confirm every expected report exists and follows the template. Rerun a failed auditor once; if it fails again, mark that dimension "Not completed".
 5. **Deduplicate and re-score.** When two reports describe the same root cause, keep the finding in the most relevant dimension and mention the other ID under cross-cutting themes. Then re-score every dimension that gained or lost a finding, using the scale in `audit-kit/RULES.md`, and record each change under "Score adjustments" in `AUDIT.md` (auditor's score, final score, reason). Use the final scores everywhere else. Move any finding that rests only on memory or notes, not on the repository, to "To verify". Carried-over dimensions keep their score and findings unless a duplicate with a new finding forces a change, which you record under "Score adjustments".
-6. **Write `audit/AUDIT.md`** using `audit-kit/templates/AUDIT.md`. The overall score is the average of the dimensions in the mode that were run or carried over, to one decimal. Dimensions never audited show "Not audited". Mark carried-over dimensions with the commit and date of their last real run.
+6. **Write `audit/AUDIT.md`** using `audit-kit/templates/AUDIT.md`. The overall score is the average of the dimensions in the mode that were run or carried over, to one decimal. Dimensions never audited show "Not audited". Mark carried-over dimensions with the commit, date, tool and model of their last real run.
 7. **Write `audit/findings.json`** with this structure:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
      "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "1.4.1",
      "context_hash": "<sha256 of audit/project-context.md>",
+     "tool": "Claude Code", "model": "claude-opus-5-5",
      "scores": {"Security": 6, "Reliability": 7},
      "dimensions": {
-       "Security": {"score": 6, "commit": "abc1234", "date": "YYYY-MM-DD", "carried_over": false},
-       "Reliability": {"score": 7, "commit": "9f8e7d6", "date": "YYYY-MM-DD", "carried_over": true}
+       "Security": {"score": 6, "commit": "abc1234", "date": "YYYY-MM-DD", "tool": "Claude Code", "model": "claude-opus-5-5", "carried_over": false},
+       "Reliability": {"score": 7, "commit": "9f8e7d6", "date": "YYYY-MM-DD", "tool": "Claude Code", "model": "claude-opus-5-5", "carried_over": true}
      },
      "findings": [
        {"id": "SEC-001", "dimension": "Security", "severity": "High",
@@ -57,13 +58,13 @@ Standard and Full are incremental when `audit/findings.json` exists: dimensions 
    ```
    Dimension names must match the table in `audit-kit/RULES.md` exactly. Use the final scores, and leave "To verify" items out.
    - `context_hash` is the hash recorded in step 1, so the next run can tell whether the project context changed.
-   - `commit` and `date` at the top are this run's. In `dimensions`, a dimension that ran gets this run's commit and date; a carried-over dimension keeps the commit and date of its last real run, so the 30-day rule counts from the last real check.
+   - `commit` and `date` at the top are this run's. In `dimensions`, a dimension that ran gets this run's commit, date, tool and model; a carried-over dimension keeps those of its last real run, so the 30-day rule counts from the last real check.
    - Include the findings of carried-over dimensions, copied from the previous `findings.json`, so the tracker does not mark them "Not found in latest audit".
    - Keep entries in `dimensions` for dimensions outside the current mode that the previous file had (for example Full dimensions during a Standard run), but leave them out of `scores` and the overall score.
 8. **Update the tracker.** Run `python3 audit-kit/tools/generate_tracker.py`. It reads `audit/findings.json` and creates or updates `audit/audit-tracker.xlsx`, keeping Status, Owner, dates, Jira key and Notes from earlier runs. If Python or `openpyxl` is missing, do not install anything: tell the user to run `pip3 install openpyxl` and skip this step.
 9. **Report in chat** (maximum 15 lines, in the user's language):
    ```
-   Audit complete · Mode: <Standard|Full>
+   Audit complete · Mode: <Standard|Full> · <tool> / <model>
    Overall score: <x.x>/10
    <Dimension>: <score>   (one line each; add "carried over" where it applies)
    Critical: <n> · High: <n> · To verify: <n>
@@ -86,7 +87,7 @@ Reviews only what changed against a base branch. Outputs go to `audit/diff/` and
 6. **Write `audit/diff/DIFF-AUDIT.md`** using `audit-kit/templates/DIFF-AUDIT.md`. Verdict: "Block merge" if there is any Critical, "Fix before merge" if there is any High, otherwise "Ready to merge".
 7. **Report in chat** (maximum 12 lines, in the user's language):
    ```
-   Diff review complete · Base: <branch>
+   Diff review complete · Base: <branch> · <tool> / <model>
    Verdict: <verdict>
    Reviewed: <dimensions> · Skipped: <n>
    Critical: <n> · High: <n> · Medium: <n> · Low: <n> · To verify: <n>

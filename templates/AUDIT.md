@@ -1,12 +1,12 @@
 # Audit Report – <project>
 
-Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
+Mode: Standard | Full · Run: Fresh | Incremental · Kit: <version> · Tool: <tool> / <model> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD>
 
 ## Overall score: <x.x>/10
 
 | Dimension | Score | Status | Critical | High | Medium | Low |
 |---|---|---|---|---|---|---|
-| <dimension> | <n>/10 or Not audited | Audited or Carried over (<commit>, <date>) | | | | |
+| <dimension> | <n>/10 or Not audited | Audited or Carried over (<commit>, <date>, <tool> / <model>) | | | | |
 
 ## Executive summary
 <5 to 8 sentences in plain language for a non-technical reader.>

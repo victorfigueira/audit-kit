@@ -109,7 +109,8 @@ def main():
     ws["A1"] = f"Audit tracker – {data.get('project', '')}"
     ws["A1"].font = Font(name=FONT, bold=True, size=14)
     ws["A2"] = (f"Mode: {data.get('mode', '')} · Branch: {data.get('branch', '')} · "
-                f"Commit: {data.get('commit', '')} · Date: {data.get('date', '')}")
+                f"Commit: {data.get('commit', '')} · Date: {data.get('date', '')}"
+                + (f" · Tool: {data['tool']} / {data.get('model', 'unknown')}" if data.get("tool") else ""))
     ws["A2"].font = BODY
     head = ["Dimension", "Score"] + SEVERITIES + ["Total", "Open", "Fixed"]
     for i, h in enumerate(head, 1):

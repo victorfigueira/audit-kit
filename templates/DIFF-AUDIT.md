@@ -1,6 +1,6 @@
 # Diff Review – <project>
 
-Base: <branch> (<short hash>) · Head: <branch> (<short hash>) · Date: <YYYY-MM-DD>
+Base: <branch> (<short hash>) · Head: <branch> (<short hash>) · Tool: <tool> / <model> · Date: <YYYY-MM-DD>
 
 ## Verdict: Ready to merge | Fix before merge | Block merge
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0 – 22/10/2026
+- Each audit records the tool and model (`findings.json`, `AUDIT.md`, tracker, chat summary). Carried-over dimensions keep the tool and model of their last real run.
+- Incremental runs force every auditor when the tool or model changes, so scores from different models are not mixed. Audits without this information do not trigger the rule.
+- User guide: new section on using more than one tool.
+
 ## 1.6.2 – 22/10/2026
 - User guide: sequence diagrams for the audit, Diff review and Jira interactions.
 

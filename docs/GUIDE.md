@@ -131,7 +131,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.6.2` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.7.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -223,12 +223,17 @@ The full table is in `agents/triage.md`. When in doubt, the triage agent runs th
 
 - You add `fresh` to the command.
 - There is no previous audit, or it was made with a different major kit version (see [Updates](#11-updates)).
+- The tool or model differs from the previous audit (for example Gemini last time, Claude now, or a newer model version). Scores from different models are not comparable, so mixing them in one overall score would mislead.
 - The commit of the previous audit no longer exists, for example after a rebase.
 - `audit/project-context.md` changed. The kit compares a SHA-256 hash stored in `findings.json`, so this works even when `audit/` is in `.gitignore`.
 
 Security and Open Source Health also run again when their last real check is more than 30 days old, because new vulnerabilities are published in dependencies you have not touched.
 
 Use `fresh` for quarterly audits and before go-live, so every dimension is checked against the current code.
+
+### Using more than one tool
+
+Gemini and Claude apply the same rules but do not produce identical reports: the serious findings usually match, while Medium and Low findings and individual scores can differ. Each audit records the tool and model in `findings.json`, `AUDIT.md` and the tracker, and the triage agent forces a full run when they change. For a stable score history, audit each project with the same tool. To compare two tools, move the first results aside (`mv audit audit-gemini`, then recreate `audit/` with the project context) before the second run.
 
 ## 7. Diff reviews
 
@@ -385,7 +390,7 @@ The installed version is recorded in each audit (`kit_version` in `findings.json
 - **Change how an auditor works:** edit `agents/<dimension>.md` in the kit repository and release a new version. Never edit the adapters in `.claude/`, `.agents/` or `.gemini/`; they only point to the kit and the installer refreshes them.
 - **Change the rules for one project only:** use `audit/project-context.md` (accepted risks, sensitive areas, out of scope paths, allowed commands). It is never overwritten.
 - **Projects with an older audit setup:** the installer refreshes files that point to `audit-kit/` and skips any other file with the same name, reporting "skip (not an audit-kit file)". Delete or rename the old files, then run the installer again.
-- **Comparing two tools:** move the previous results aside before the second run (`mv audit audit-gemini`, then recreate `audit/` with the project context), so the runs do not overwrite each other.
+- **Comparing two tools:** see [Using more than one tool](#using-more-than-one-tool).
 
 ## 13. Troubleshooting
 
@@ -394,7 +399,7 @@ The installed version is recorded in each audit (`kit_version` in `findings.json
 | The commands do not appear | Reload the IDE window after installing or updating. |
 | No Excel file after the audit | `openpyxl` is missing. Run `python3 -m pip install --user openpyxl` (add `--break-system-packages` if pip reports an externally managed environment). |
 | "skip (not an audit-kit file)" during install | An older file with the same name exists. Delete or rename it and run the installer again. |
-| Every incremental run reruns all auditors | Check `audit/triage.md` for the forced-run reason: an old major version, a changed project context or a missing commit. |
+| Every incremental run reruns all auditors | Check `audit/triage.md` for the forced-run reason: an old major version, a changed project context, a different tool or model or a missing commit. |
 | A finding the agent is sure about is under "To verify" | It does not rest on the repository. Run the suggested check; if it confirms the problem, tell the agent so it becomes a finding. |
 | The update check says GitHub cannot be reached | Network or proxy issue. The audit continues with the installed version. |
 | A new auditor is not available as a subagent after an update | Claude Code loads subagents at session start. The manager runs it from its file this time; restart the session for the next audit. |
