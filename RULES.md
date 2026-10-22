@@ -16,6 +16,8 @@ These rules apply to every agent in this kit, whatever tool runs it.
 - Every finding cites a location (`file:line`, or file and section).
 - Explain why it matters, not only what is wrong.
 - Prefer fewer, well-evidenced findings over long lists. Merge findings with the same root cause.
+- Only the repository counts as evidence. Information from memory, saved notes, earlier sessions or general knowledge about the project cannot support a finding on its own. List it under "To verify" in the report, with the exact check that would confirm or rule it out (for example a command the user can run).
+- "To verify" items never get an ID, a severity or a place in the score. They become findings only when the user confirms them.
 
 ## Sensitive data
 - Mask secrets: show at most the first 4 characters (for example `sk_l****`).

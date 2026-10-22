@@ -20,6 +20,12 @@ Mode: Standard | Full · Branch: <branch> · Commit: <short hash> · Date: <YYYY
 ## Quick wins
 <High value, effort S.>
 
+## To verify
+<Items from all reports that need a check by the user before they count as findings, with the check for each.>
+
+## Score adjustments
+<Only if the manager changed a score: dimension, auditor's score, final score, reason.>
+
 ## Comparison with previous audit
 <Only if audit/audit-tracker.xlsx existed before this run: new, fixed and still open findings.>
 

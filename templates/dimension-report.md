@@ -18,6 +18,9 @@ Project: <name> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD
 - Recommendation: <concrete fix>
 - Effort: S | M | L
 
+## To verify
+- <Suspicion not backed by the repository> · Source: <memory, saved note, etc.> · Check: <how the user can confirm it>
+
 ## Strengths
 - <what is done well>
 
