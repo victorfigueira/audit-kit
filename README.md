@@ -4,7 +4,9 @@ A portable code audit team: ten read-only auditors and a manager that consolidat
 
 Drop this folder into the root of any project. It works with Claude Code, Antigravity (Gemini), Gemini CLI or any agent that can read files.
 
-## One-line install
+## Set up a new project
+
+### 1. Install the kit
 
 From the root of the project you want to audit:
 
@@ -12,34 +14,47 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and runs `install.sh`. Run it again later to update the kit; your `audit/` folder is kept. For one tool only, add `-s -- antigravity` (or `claude`, `gemini`) after `bash`. To pin a version: `AUDIT_KIT_REF=v1.0.0` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v1.1.0` before `bash`.
 
-For a private repository, use the GitHub CLI instead of curl:
+If the project repository is public, keep the reports and the kit copy out of git:
 
 ```
-gh api repos/victorfigueira/audit-kit/contents/get.sh -H "Accept: application/vnd.github.raw" | AUDIT_KIT_REPO=git@github.com:victorfigueira/audit-kit.git bash
+echo "audit/" >> .gitignore
+echo "audit-kit/" >> .gitignore
 ```
 
-## Quick start (manual)
+### 2. Fill in the project context
 
-1. Copy the `audit-kit/` folder into the root of your project.
-2. From the project root, run:
-   ```
-   bash audit-kit/install.sh
-   ```
-   (or `claude`, `antigravity` or `gemini` instead of all three).
-3. Fill in `audit/project-context.md`, or ask your agent: "Fill in audit/project-context.md from the README and folder structure. Mark doubts as TO CONFIRM."
-4. Reload the IDE window.
-5. Run the audit:
+Reload the IDE window, then paste this into the agent chat:
+
+```
+Fill in audit/project-context.md from the README, package.json, AGENTS.md and folder structure. Mark anything you are not sure about with TO CONFIRM. Add build output and dependency folders to the out of scope paths. In "Commands auditors may run", list only the existing test and lint scripts. Do not change any other file.
+```
+
+Review the file and resolve every TO CONFIRM by hand. This step has the biggest effect on audit quality.
+
+### 3. Run the audit
 
 | Tool | Standard | Full | Jira |
 |---|---|---|---|
 | Claude Code | `/audit` | `/audit-full` | `/audit-jira` |
 | Antigravity | `/audit` | `/audit-full` | `/audit-jira` |
 | Gemini CLI | `/audit` | `/audit-full` | `/audit-jira` |
-| Any other agent | "Follow audit-kit/RUN.md, standard mode" | "…, full mode" | "Follow audit-kit/JIRA.md" |
+| Any other agent | "Follow audit-kit/RUN.md, standard mode" | "Follow audit-kit/RUN.md, full mode" | "Follow audit-kit/JIRA.md" |
 
-The install step is optional. Without it, the last row works in any tool.
+### Update the kit in a project
+
+Run the same `curl` command again. It replaces `audit-kit/` and keeps `audit/` (context, reports and tracker).
+
+### Private repository or no curl
+
+With the GitHub CLI:
+
+```
+gh api repos/victorfigueira/audit-kit/contents/get.sh -H "Accept: application/vnd.github.raw" | AUDIT_KIT_REPO=git@github.com:victorfigueira/audit-kit.git bash
+```
+
+Or manually: copy the `audit-kit/` folder into the project root and run `bash audit-kit/install.sh`.
 
 ## What you get
 
