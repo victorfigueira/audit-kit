@@ -9,7 +9,7 @@ Drop this folder into the root of any project. It works with Claude Code, Antigr
 From the root of the project you want to audit:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/victorfigueirs/audit-kit/main/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
 This downloads the kit into `audit-kit/` and runs `install.sh`. Run it again later to update the kit; your `audit/` folder is kept. For one tool only, add `-s -- antigravity` (or `claude`, `gemini`) after `bash`. To pin a version: `AUDIT_KIT_REF=v1.0.0` before `bash`.
@@ -17,7 +17,7 @@ This downloads the kit into `audit-kit/` and runs `install.sh`. Run it again lat
 For a private repository, use the GitHub CLI instead of curl:
 
 ```
-gh api repos/victorfigueirs/audit-kit/contents/get.sh -H "Accept: application/vnd.github.raw" | AUDIT_KIT_REPO=git@github.com:victorfigueirs/audit-kit.git bash
+gh api repos/victorfigueira/audit-kit/contents/get.sh -H "Accept: application/vnd.github.raw" | AUDIT_KIT_REPO=git@github.com:victorfigueira/audit-kit.git bash
 ```
 
 ## Quick start (manual)

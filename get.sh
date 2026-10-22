@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # One-line installer for audit-kit.
 # Run it from inside the project you want to audit:
-#   curl -fsSL https://raw.githubusercontent.com/victorfigueirs/audit-kit/main/get.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 # Only one tool:
-#   curl -fsSL https://raw.githubusercontent.com/victorfigueirs/audit-kit/main/get.sh | bash -s -- antigravity
+#   curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash -s -- antigravity
 # Options (environment variables):
 #   AUDIT_KIT_REPO  repository to download from (default below)
 #   AUDIT_KIT_REF   branch or tag, for example v1.0.0 (default: main)
 set -euo pipefail
 
-REPO="${AUDIT_KIT_REPO:-https://github.com/victorfigueirs/audit-kit.git}"
+REPO="${AUDIT_KIT_REPO:-https://github.com/victorfigueira/audit-kit.git}"
 REF="${AUDIT_KIT_REF:-main}"
 TARGET="${1:-all}"
 
