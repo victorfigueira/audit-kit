@@ -18,6 +18,8 @@ import glob
 import json
 import os
 import re
+import subprocess
+import sys
 
 TYPES = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 TAG = re.compile(r"audit-kit-agent:\s*([a-z0-9-]+)", re.I)
@@ -328,6 +330,136 @@ def process_antigravity(transcript_path, brain_dir, since, since_str):
 
 
 # ---------------------------------------------------------------------------
+# Deterministic token estimation fallback
+# ---------------------------------------------------------------------------
+
+DIMENSIONS = [
+    "maintainability", "oss-health", "architecture", "security", "reliability",
+    "performance-scalability", "testing-qa", "observability-operability",
+    "data-privacy", "infra-cicd-cost"
+]
+
+
+def estimate_usage(root, since_str, since=None):
+    """Deterministic token estimate based on repository size and generated audit reports."""
+    size_script = os.path.join(os.path.dirname(__file__), "size_check.py")
+    code_tokens = 50_000
+    if os.path.isfile(size_script):
+        try:
+            out = subprocess.check_output(
+                [sys.executable, size_script, "--json"],
+                cwd=root,
+                stderr=subprocess.DEVNULL
+            )
+            data = json.loads(out)
+            code_tokens = int(data.get("estimated_tokens") or 50_000)
+        except Exception:
+            pass
+
+    audit_dir = os.path.join(root, "audit")
+    agents = []
+    total_out_chars = 0
+
+    if os.path.isdir(audit_dir):
+        # 1. Individual auditor reports
+        for dim in DIMENSIONS:
+            rep_path = os.path.join(audit_dir, f"{dim}.md")
+            if os.path.isfile(rep_path):
+                mtime = os.path.getmtime(rep_path)
+                if since and dt.datetime.fromtimestamp(mtime, dt.timezone.utc) < since:
+                    continue
+                size_chars = os.path.getsize(rep_path)
+                total_out_chars += size_chars
+                out_tok = max(1, size_chars // 4)
+                # Input overhead: prompt (~1200) + code in scope
+                in_tok = 1200 + code_tokens
+                agents.append({
+                    "agent": dim,
+                    "runs": 1,
+                    "input_tokens": in_tok,
+                    "output_tokens": out_tok,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0
+                })
+
+        # 2. Skeptic verifier
+        verif_path = os.path.join(audit_dir, "verification.md")
+        if os.path.isfile(verif_path):
+            size_chars = os.path.getsize(verif_path)
+            total_out_chars += size_chars
+            out_tok = max(1, size_chars // 4)
+            in_tok = max(3000, out_tok * 4)
+            agents.append({
+                "agent": "skeptic-verifier",
+                "runs": 1,
+                "input_tokens": in_tok,
+                "output_tokens": out_tok,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0
+            })
+
+        # 3. Triage
+        triage_path = os.path.join(audit_dir, "triage.md")
+        if os.path.isfile(triage_path):
+            size_chars = os.path.getsize(triage_path)
+            total_out_chars += size_chars
+            out_tok = max(1, size_chars // 4)
+            in_tok = 2500 + min(15000, code_tokens // 4)
+            agents.append({
+                "agent": "triage",
+                "runs": 1,
+                "input_tokens": in_tok,
+                "output_tokens": out_tok,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0
+            })
+
+        # 4. Manager
+        audit_md = os.path.join(audit_dir, "AUDIT.md")
+        audit_chars = os.path.getsize(audit_md) if os.path.isfile(audit_md) else 2000
+        mgr_out_tok = max(1, audit_chars // 4)
+        mgr_in_tok = 2000 + (total_out_chars // 4)
+        agents.insert(0, {
+            "agent": "manager",
+            "runs": 1,
+            "input_tokens": mgr_in_tok,
+            "output_tokens": mgr_out_tok,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0
+        })
+
+    # If no audit files found yet, provide baseline manager run
+    if not agents:
+        agents.append({
+            "agent": "manager",
+            "runs": 1,
+            "input_tokens": 2000 + code_tokens,
+            "output_tokens": 1000,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0
+        })
+
+    totals = {
+        "input_tokens": sum(a["input_tokens"] for a in agents),
+        "output_tokens": sum(a["output_tokens"] for a in agents),
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+    }
+    totals["total_tokens"] = totals["input_tokens"] + totals["output_tokens"]
+
+    return {
+        "available": True,
+        "estimated": True,
+        "source": "Deterministic estimate (code size and report lengths)",
+        "since": since_str,
+        "totals": totals,
+        "models": ["Estimated (Model-neutral)"],
+        "agents": agents,
+        "notes": "Calculated deterministically at 4 chars/token over repository code size and generated audit reports. Used as fallback when native session logs are absent.",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Main dispatch
 # ---------------------------------------------------------------------------
 
@@ -335,12 +467,20 @@ def main():
     ap = argparse.ArgumentParser(description="Sum audit tokens from local AI session transcripts.")
     ap.add_argument("--since", help="audit start time, ISO 8601 (UTC)")
     ap.add_argument("--root", default=".", help="project root directory (default: .)")
-    ap.add_argument("--engine", choices=["auto", "claude", "antigravity"], default="auto",
+    ap.add_argument("--engine", choices=["auto", "claude", "antigravity", "estimate"], default="auto",
                     help="AI session engine (default: auto)")
     ap.add_argument("--conversation-id", help="Antigravity conversation ID if known")
+    ap.add_argument("--estimate", action="store_true", help="Force deterministic estimation fallback")
+    ap.add_argument("--no-fallback", action="store_true", help="Disable estimation fallback when sessions are missing")
     args = ap.parse_args()
 
     since = parse_ts(args.since) if args.since else None
+
+    # Forced estimation
+    if args.estimate or args.engine == "estimate":
+        res = estimate_usage(args.root, args.since, since)
+        print(json.dumps(res, indent=2))
+        return
 
     # Antigravity engine requested
     if args.engine == "antigravity":
@@ -350,6 +490,10 @@ def main():
             if res:
                 print(json.dumps(res, indent=2))
                 return
+        if not args.no_fallback:
+            res = estimate_usage(args.root, args.since, since)
+            print(json.dumps(res, indent=2))
+            return
         print(json.dumps({
             "available": False,
             "reason": "No Antigravity transcript logs found for this project or time range."
@@ -364,6 +508,10 @@ def main():
             if res:
                 print(json.dumps(res, indent=2))
                 return
+        if not args.no_fallback:
+            res = estimate_usage(args.root, args.since, since)
+            print(json.dumps(res, indent=2))
+            return
         print(json.dumps({
             "available": False,
             "reason": "No Claude Code session files for this project."
@@ -395,6 +543,12 @@ def main():
         if res:
             print(json.dumps(res, indent=2))
             return
+
+    # 4. Fallback to estimation unless explicitly disabled
+    if not args.no_fallback:
+        res = estimate_usage(args.root, args.since, since)
+        print(json.dumps(res, indent=2))
+        return
 
     print(json.dumps({
         "available": False,

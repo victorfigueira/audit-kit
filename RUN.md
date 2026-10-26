@@ -53,11 +53,11 @@ When you start any subagent (auditor, triage agent or skeptic verifier), make th
    - If the user later disagrees with a rejection ("reinstate SEC-002"), move it back into the findings with verification "Reinstated by user", re-score, and rewrite `AUDIT.md`, `findings.json` and the tracker.
 6. **Deduplicate and re-score.** When two reports describe the same root cause, keep the finding in the most relevant dimension and mention the other ID under cross-cutting themes. Then re-score every dimension that gained or lost a finding, or had one rejected or downgraded by the verifier, using the scale in `audit-kit/RULES.md`, and record each change under "Score adjustments" in `AUDIT.md` (auditor's score, final score, reason). Use the final scores everywhere else. Move any finding that rests only on memory or notes, not on the repository, to "To verify". Carried-over dimensions keep their score and findings unless a duplicate with a new finding forces a change, which you record under "Score adjustments".
 7. **Write `audit/AUDIT.md`** using `audit-kit/templates/AUDIT.md`. The overall score is the average of the dimensions in the mode that were run or carried over, to one decimal. Dimensions never audited show "Not audited". Mark carried-over dimensions with the commit, date, tool and model of their last real run.
-8. **Write `audit/findings.json`.** First run `python3 audit-kit/tools/usage_report.py --since <start time from step 1>` and keep its JSON for the `usage` field. Never estimate or invent token figures: if the script reports `"available": false`, store that. Then write the file with this structure:
+8. **Write `audit/findings.json`.** First run `python3 audit-kit/tools/usage_report.py --since <start time from step 1>` and keep its JSON for the `usage` field. The script parses local session logs (Claude Code, Antigravity) or provides a deterministic fallback estimate with `"estimated": true`. Then write the file with this structure:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.6.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.7.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",

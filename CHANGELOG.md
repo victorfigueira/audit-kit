@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.7.0 – 26/10/2026
+- Deterministic token estimation fallback in `tools/usage_report.py`: calculates model-neutral token estimates (4 chars/token) from code in scope and audit report outputs when native session logs are absent.
+- Added `--estimate` and `--no-fallback` CLI options.
+- Completed Phase 2 (Agnostic Token Telemetry).
+
 ## 2.6.0 – 26/10/2026
 - Cross-platform token telemetry in `tools/usage_report.py`: added native parser for Antigravity conversation transcripts and subagent logs (`transcript.jsonl`).
 - Auto-engine detection between Claude Code and Antigravity via environment inspection and project discovery.
