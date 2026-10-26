@@ -88,6 +88,7 @@ All outputs go to `audit/` in the project:
 | `agents/` | One definition per auditor plus the triage agent and the skeptic verifier (tool-agnostic). |
 | `templates/` | Report, summary and project context templates. |
 | `JIRA.md` | Optional ticket workflow. |
+| `BACKLOG.md` | Product roadmap and backlog for universal AI first-class support. |
 | `UPDATE.md` | Update check used by `/audit-check-update`. |
 | `docs/GUIDE.md` | User guide: how the kit works, commands, modes, updates and maintenance. |
 | `tools/generate_tracker.py` | Builds the Excel tracker (needs Python 3 and `openpyxl`). |
