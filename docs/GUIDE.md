@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.5.1` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.6.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -351,15 +351,19 @@ The result is stored as `code_size` in `findings.json` and in the header of `AUD
 
 ### Tokens consumed
 
-At the end of each Standard or Full audit, `tools/usage_report.py` sums the tokens the run used. It reads Claude Code's local session files (`~/.claude/projects/<project>/`): the current session and its subagents, counting only records since the audit started. It reads numbers only and never copies prompts or code.
+At the end of each Standard or Full audit, `tools/usage_report.py` sums the tokens the run used. It reads local session files:
+- **Claude Code**: reads local session files (`~/.claude/projects/<project>/`), including main session and subagents.
+- **Antigravity**: reads transcript logs (`~/.gemini/antigravity/brain/<conversation-id>/.system_generated/logs/transcript.jsonl`) and child subagent conversation transcripts.
+
+Counting only records since the audit started. It reads numbers and agent tags only, and never copies prompts or code.
 
 The totals are split by type, because APIs price them differently: input, output, cache write and cache read. They are also split by agent (manager, each auditor, triage, verifier), identified by a tag the manager puts on the first line of every subagent prompt (`audit-kit-agent: <name>`).
 
 The result is stored as `usage` in `findings.json`, in the "Run data" section of `AUDIT.md` and as a row of the Run log sheet in the tracker, which keeps one row per audit across runs.
 
 Limits:
-- Only Claude Code writes these files. In Antigravity and Gemini CLI the usage shows "not available"; the kit never estimates it.
-- The session file format is not documented by Anthropic and may change. If the script stops finding data, it reports "not available" rather than wrong figures.
+- Supported natively for Claude Code and Antigravity. In other environments the usage reports "not available" (or estimated if fallback is enabled); figures are never guessed without basis.
+- The session file format is not documented and may change. If the script stops finding data, it reports "not available" rather than wrong figures.
 - On a subscription plan, tokens consume quota rather than money. To turn them into euros, multiply each type by the API price of the recorded model. You can run the check on its own at any time:
 
 ```

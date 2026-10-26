@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.6.0 – 26/10/2026
+- Cross-platform token telemetry in `tools/usage_report.py`: added native parser for Antigravity conversation transcripts and subagent logs (`transcript.jsonl`).
+- Auto-engine detection between Claude Code and Antigravity via environment inspection and project discovery.
+- Subagent token attribution via `invoke_subagent` conversation logs and `audit-kit-agent:` prompt tags.
+
 ## 2.5.1 – 26/10/2026
 - Standardized Antigravity rules injection: added modular `adapters/antigravity/rules/audit-rules.md` deployed to `.agents/rules/` on install.
 - `install.sh` automatically updates `GEMINI.md` when present, ensuring automatic rule discovery in Antigravity workspaces.
