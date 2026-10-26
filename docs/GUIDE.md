@@ -136,10 +136,10 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 
 - installs `openpyxl` for the Excel tracker if it is missing (a failure never stops the install);
 - creates `audit/project-context.md` if it does not exist;
-- adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
-- copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
+- adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
+- copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.5.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.5.1` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 

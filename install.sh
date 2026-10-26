@@ -93,6 +93,12 @@ if [ "$TARGET" = antigravity ] || [ "$TARGET" = all ]; then
     copy_skills "$KIT/adapters/antigravity/skills" .agents/skills
   fi
   copy_dir "$KIT/adapters/antigravity/workflows" .agents/workflows
+  if [ -d "$KIT/adapters/antigravity/rules" ]; then
+    copy_dir "$KIT/adapters/antigravity/rules" .agents/rules
+  fi
+  if [ -f GEMINI.md ]; then
+    add_rules GEMINI.md
+  fi
 fi
 if [ "$TARGET" = gemini ] || [ "$TARGET" = all ]; then
   echo "Gemini CLI:"

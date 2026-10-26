@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.1 – 26/10/2026
+- Standardized Antigravity rules injection: added modular `adapters/antigravity/rules/audit-rules.md` deployed to `.agents/rules/` on install.
+- `install.sh` automatically updates `GEMINI.md` when present, ensuring automatic rule discovery in Antigravity workspaces.
+- Completed Phase 1 (Antigravity Full Parity & Modernization).
+
 ## 2.5.0 – 26/10/2026
 - Native Antigravity parallel subagents: added `adapters/antigravity/subagents.md` defining concurrent auditor and skeptic verifier execution via `invoke_subagent`.
 - Antigravity skills (`audit`, `audit-full`, `audit-diff`) and `RUN.md` now orchestrate auditors in parallel isolated contexts, eliminating context leakage between dimensions.
