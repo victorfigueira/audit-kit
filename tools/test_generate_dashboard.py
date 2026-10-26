@@ -52,6 +52,7 @@ class TestGenerateDashboard(unittest.TestCase):
         self.assertIn("test-repo", content)
         self.assertIn("SEC-001", content)
         self.assertIn("SQL Injection in auth", content)
+        self.assertIn("Estimated Cost", content)
         self.assertIn("snap1", content)
         self.assertIn("<!DOCTYPE html>", content)
 

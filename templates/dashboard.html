@@ -309,6 +309,11 @@
           <div class="stat-value" id="card-code-files" style="font-size: 1.8rem;">-</div>
           <div class="stat-sub" id="card-code-sub">Files in audit scope</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Estimated Cost</div>
+          <div class="stat-value" id="card-cost" style="color: var(--accent); font-size: 1.8rem;">-</div>
+          <div class="stat-sub" id="card-cost-sub">Token usage & pricing</div>
+        </div>
       </div>
 
       <h2 class="section-title">Dimension Scores</h2>
@@ -345,6 +350,7 @@
             <th>Mode</th>
             <th>Score</th>
             <th>Findings</th>
+            <th>Cost</th>
             <th>Tool</th>
           </tr>
         </thead>
@@ -447,6 +453,22 @@
         document.getElementById('card-code-files').textContent = auditData.code_size.files || '-';
         document.getElementById('card-code-sub').textContent = `${(auditData.code_size.lines || 0).toLocaleString()} lines (${(auditData.code_size.estimated_tokens || 0).toLocaleString()} tokens)`;
       }
+
+      // Cost calculation display
+      const usage = auditData.usage || {};
+      const cost = usage.cost || {};
+      const costFormatted = cost.formatted || (cost.total_usd !== undefined ? '$' + cost.total_usd.toFixed(2) : (auditData.cost ? auditData.cost.formatted : null));
+      const cardCost = document.getElementById('card-cost');
+      const cardCostSub = document.getElementById('card-cost-sub');
+      if (costFormatted) {
+        cardCost.textContent = costFormatted;
+        const totalTok = usage.totals?.total_tokens || usage.total_tokens;
+        const tokStr = totalTok ? totalTok.toLocaleString() + ' tokens' : (auditData.code_size?.estimated_tokens ? '~' + auditData.code_size.estimated_tokens.toLocaleString() + ' tokens' : '');
+        cardCostSub.textContent = tokStr ? `${tokStr} (${cost.pricing_applied || 'API list pricing'})` : (cost.pricing_applied || 'API list pricing');
+      } else {
+        cardCost.textContent = 'N/A';
+        cardCostSub.textContent = 'Token telemetry unavailable';
+      }
     }
 
     function renderDimensions() {
@@ -546,13 +568,14 @@
       select.innerHTML = '<option value="">-- Select snapshot to compare --</option>';
 
       if (!snapshots.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">No historical snapshots archived yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No historical snapshots archived yet.</td></tr>';
         return;
       }
 
       snapshots.forEach(s => {
         const sum = s.findings_summary || {};
         const scoreStr = s.overall_score !== null && s.overall_score !== undefined ? Number(s.overall_score).toFixed(1) : 'N/A';
+        const costStr = s.cost?.formatted || s.usage?.cost?.formatted || '-';
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${s.id}</strong></td>
@@ -561,6 +584,7 @@
           <td>${s.mode || '-'}</td>
           <td><strong style="color: ${s.overall_score >= 8.5 ? 'var(--success)' : 'var(--medium)'}">${scoreStr}</strong></td>
           <td>${sum.total || 0}</td>
+          <td style="color: var(--accent); font-weight: 600;">${costStr}</td>
           <td>${s.tool || '-'}</td>
         `;
         tbody.appendChild(tr);

@@ -42,9 +42,9 @@ To reinstate a rejected finding, tell the agent "reinstate <ID>".
 <Only if audit/audit-tracker.xlsx existed before this run: new, fixed and still open findings.>
 
 ## Run data
-| Input | Output | Cache write | Cache read | Total | Source |
-|---|---|---|---|---|---|
-| <n> | <n> | <n> | <n> | <n> | Claude Code session files, or "Not available" |
+| Input | Output | Cache write | Cache read | Total | Cost (USD) | Source |
+|---|---|---|---|---|---|---|
+| <n> | <n> | <n> | <n> | <n> | ~$<x.xx> | Claude Code / Antigravity / Estimate |
 
 Per agent: <one line per agent with its total, from usage.agents>.
 

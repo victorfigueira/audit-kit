@@ -1,9 +1,9 @@
 # Product Backlog & Roadmap: Universal AI First-Class Support
 
 **Jira Project:** [audit-kit (AK)](https://victorsfl.atlassian.net/browse/AK-1)  
-**Total Effort:** 32 Story Points (~15 business days across 3 Sprints)  
-**Target Timeline:** 2026-10-27 to 2026-11-15  
-**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) with native snapshot history and interactive dashboard visualization.
+**Total Effort:** 37 Story Points (~18 business days across 4 Sprints)  
+**Target Timeline:** 2026-10-27 to 2026-11-18  
+**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) with native snapshot history, interactive dashboard visualization, and automated audit cost calculation.
 
 ---
 
@@ -34,7 +34,13 @@ flowchart LR
         AK18 --> AK19["AK-19: Pipeline & Docs Integration<br/>(Nov 15 | 1 SP)"]
     end
 
-    S1 --> S2 --> S3
+    subgraph S4["Sprint 4: Cost Intelligence & UX Enhancements (5 SP)"]
+        direction TB
+        AK21["AK-21: Cost Calculation Engine<br/>(Nov 16 | 2 SP)"] --> AK22["AK-22: Dashboard Cost Metrics<br/>(Nov 17 | 2 SP)"]
+        AK22 --> AK23["AK-23: Clickable Link & Chat UX<br/>(Nov 18 | 1 SP)"]
+    end
+
+    S1 --> S2 --> S3 --> S4
 ```
 
 ---
@@ -62,6 +68,10 @@ flowchart LR
 | [AK-17](https://victorsfl.atlassian.net/browse/AK-17) | Task | AK-5.2: Snapshot comparison and audit diff engine (`tools/snapshot.py compare`) | 2 SP | 4–6 hrs | 2026-11-12 | 2026-11-12 | Done |
 | [AK-18](https://victorsfl.atlassian.net/browse/AK-18) | Task | AK-5.3: Standalone HTML/CSS/JS audit dashboard generator (`tools/generate_dashboard.py`) | 3 SP | 1–1.5 days | 2026-11-13 | 2026-11-14 | Done |
 | [AK-19](https://victorsfl.atlassian.net/browse/AK-19) | Task | AK-5.4: Pipeline integration in RUN.md, adapters, installer and documentation | 1 SP | 2–3 hrs | 2026-11-15 | 2026-11-15 | Done |
+| [AK-20](https://victorsfl.atlassian.net/browse/AK-20) | **Epic** | **Phase 6: Audit Cost Calculation & UX Enhancements** | **5 SP** | **~2.5 days** | **2026-11-16** | **2026-11-18** | Done |
+| [AK-21](https://victorsfl.atlassian.net/browse/AK-21) | Task | AK-6.1: Cost calculation engine and pricing matrix in `usage_report.py` | 2 SP | 4–6 hrs | 2026-11-16 | 2026-11-16 | Done |
+| [AK-22](https://victorsfl.atlassian.net/browse/AK-22) | Task | AK-6.2: Financial cost card & metrics in HTML dashboard & generator | 2 SP | 4–6 hrs | 2026-11-17 | 2026-11-17 | Done |
+| [AK-23](https://victorsfl.atlassian.net/browse/AK-23) | Task | AK-6.3: One-click `file://` dashboard link & cost reporting in `RUN.md` | 1 SP | 2–3 hrs | 2026-11-18 | 2026-11-18 | Done |
 
 ---
 
@@ -158,3 +168,21 @@ Provide historical traceability, snapshot archiving, diff comparisons between au
 * **[AK-19](https://victorsfl.atlassian.net/browse/AK-19) – AK-5.4: Pipeline integration in RUN.md, adaptadores, installer and documentation**
   * **Scope:** Wire `tools/snapshot.py` into step 1 of `RUN.md` and `tools/generate_dashboard.py` into final steps. Add slash commands (`/audit-dashboard`), update `install.sh`, `get.sh`, `README.md`, and `docs/GUIDE.md`.
   * **Acceptance Criteria:** Every audit automatically produces an updated `dashboard.html` and preserves snapshots without user intervention.
+
+---
+
+### Phase 6: Audit Cost Calculation & UX Enhancements ([AK-20](https://victorsfl.atlassian.net/browse/AK-20))
+**Target Dates:** 2026-11-16 – 2026-11-18 | **Effort:** 5 SP  
+Automate calculation of audit cost (USD) based on tokens consumed and AI model used, display financial metrics in the HTML dashboard, and deliver a one-click `file://` link upon audit completion.
+
+* **[AK-21](https://victorsfl.atlassian.net/browse/AK-21) – AK-6.1: Cost calculation engine and pricing matrix in `usage_report.py`**
+  * **Scope:** Implement model pricing matrix (Claude, Gemini, GPT) and auto-compute USD costs for input, output, and cache operations.
+  * **Acceptance Criteria:** `usage_report.py` JSON output includes detailed `cost` object with formatted total and itemized breakdown.
+
+* **[AK-22](https://victorsfl.atlassian.net/browse/AK-22) – AK-6.2: Financial cost card & metrics in HTML dashboard & generator**
+  * **Scope:** Add prominent Audit Cost card to `templates/dashboard.html` overview grid, snapshot comparison table, and feed from `generate_dashboard.py`.
+  * **Acceptance Criteria:** Dashboard visually displays estimated audit cost and cost evolution across snapshots.
+
+* **[AK-23](https://victorsfl.atlassian.net/browse/AK-23) – AK-6.3: One-click `file://` dashboard link & cost reporting in `RUN.md`**
+  * **Scope:** Update `RUN.md` reporting step to output absolute clickable markdown link `[Open Dashboard](file:///...)` and audit cost in chat summary.
+  * **Acceptance Criteria:** User can click link directly in chat to open `dashboard.html` in browser.

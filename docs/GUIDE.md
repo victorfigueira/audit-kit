@@ -141,7 +141,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`), Gemini CLI (`.gemini/commands/`), Cursor (`.cursorrules`, `.cursor/rules/`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.8.1` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.10.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -368,8 +368,8 @@ The result is stored as `usage` in `findings.json`, in the "Run data" section of
 
 Limits:
 - Supported natively for Claude Code and Antigravity. For other environments (Cursor, Windsurf, Copilot, etc.), token usage can be computed deterministically using `python3 audit-kit/tools/usage_report.py --estimate` based on audited file size, or reported as unavailable rather than guessing arbitrary figures.
+- Audit cost calculation: `tools/usage_report.py` automatically computes the estimated dollar cost (`usage.cost`) based on input, output, and cache rates for the detected model (Claude, Gemini, GPT-4o, etc.) and embeds it directly into `findings.json`, `AUDIT.md`, and the interactive HTML dashboard.
 - The session file format is not documented and may change. If the script stops finding data, it reports "not available" rather than wrong figures.
-- On a subscription plan, tokens consume quota rather than money. To turn them into euros, multiply each type by the API price of the recorded model. You can run the check on its own at any time:
 
 ```
 python3 audit-kit/tools/size_check.py

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.0 – 26/10/2026
+- Automated Audit Cost Calculation: added pricing matrix for Anthropic (Claude Opus, Sonnet, Haiku), Google Gemini (Pro, Flash), and OpenAI (GPT-4o, o1, o3-mini) with automatic USD cost calculation for input, output, and cache tokens in `tools/usage_report.py`.
+- Financial Metrics in Dashboard: added dedicated Audit Cost card in `templates/dashboard.html` and cost history tracking across snapshots.
+- One-Click Dashboard Access: updated `RUN.md` reporting step to deliver an immediate, clickable `file://` link to `dashboard.html` in chat upon audit completion.
+- Updated report templates and documentation to reflect token costs and financial metrics.
+
 ## 2.9.0 – 26/10/2026
 - Historical Audit Snapshots: automatically archive previous audits into `audit/snapshots/<timestamp>_<commit>/` before fresh or incremental runs via `tools/snapshot.py`.
 - Audit Comparison & Diff Engine: `tools/snapshot.py compare` compares runs to report resolved findings, new findings, persistent findings, and dimension score deltas.

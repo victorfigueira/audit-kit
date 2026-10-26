@@ -143,6 +143,8 @@ def create_snapshot(audit_dir="audit", snapshots_dir=None, name=None, if_exists=
         
     findings_list = findings_data.get("findings", [])
     findings_summary = summarize_findings(findings_list)
+    usage_info = findings_data.get("usage", {})
+    cost_info = usage_info.get("cost")
     
     metadata = {
         "id": snapshot_id,
@@ -157,6 +159,8 @@ def create_snapshot(audit_dir="audit", snapshots_dir=None, name=None, if_exists=
         "overall_score": overall_score,
         "dimension_scores": scores,
         "findings_summary": findings_summary,
+        "cost": cost_info,
+        "tokens": usage_info.get("totals", {}).get("total_tokens"),
         "files": sorted(copied_files)
     }
 
@@ -203,6 +207,8 @@ def load_snapshot_metadata(snapshot_dir):
         "overall_score": findings.get("overall_score") or calculate_overall_score(scores),
         "dimension_scores": scores,
         "findings_summary": summarize_findings(findings.get("findings", [])),
+        "cost": findings.get("usage", {}).get("cost"),
+        "tokens": findings.get("usage", {}).get("totals", {}).get("total_tokens"),
         "files": os.listdir(snapshot_dir)
     }
 

@@ -80,7 +80,7 @@ Choose the execution strategy that matches your platform:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.9.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.10.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
@@ -123,7 +123,8 @@ Choose the execution strategy that matches your platform:
    <Dimension>: <score>   (one line each; add "carried over" where it applies)
    Critical: <n> · High: <n> · To verify: <n>
    Verifier: <checked> checked · <rejected> rejected · <downgraded> downgraded
-   Tokens: <total> (input <n> · output <n> · cache write <n> · cache read <n>) or "not available"
+   Tokens: <total> (input <n> · output <n> · cache write <n> · cache read <n>) · Cost: ~$<x.xx> USD
+   Dashboard: [Open Interactive Dashboard](file://<absolute-path-to-project>/audit/dashboard.html)
    Files: audit/AUDIT.md · audit/audit-tracker.xlsx · audit/dashboard.html
    ```
 

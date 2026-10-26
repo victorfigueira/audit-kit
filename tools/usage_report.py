@@ -23,6 +23,92 @@ import sys
 
 TYPES = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 TAG = re.compile(r"audit-kit-agent:\s*([a-z0-9-]+)", re.I)
+
+# ---------------------------------------------------------------------------
+# Pricing Matrix (USD per 1,000,000 tokens)
+# ---------------------------------------------------------------------------
+MODEL_PRICING = {
+    # Anthropic Claude
+    "claude-opus": {"input": 15.00, "output": 75.00, "cache_write": 18.75, "cache_read": 1.50, "label": "Claude 3 / 3.5 Opus"},
+    "claude-sonnet": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30, "label": "Claude 3.5 / 3.7 Sonnet"},
+    "claude-haiku": {"input": 0.80, "output": 4.00, "cache_write": 1.00, "cache_read": 0.08, "label": "Claude 3.5 Haiku"},
+    
+    # Google Gemini
+    "gemini-pro": {"input": 1.25, "output": 5.00, "cache_write": 1.25, "cache_read": 0.3125, "label": "Gemini 1.5 / 2.5 Pro"},
+    "gemini-flash": {"input": 0.10, "output": 0.40, "cache_write": 0.10, "cache_read": 0.025, "label": "Gemini 1.5 / 2.0 Flash"},
+    
+    # OpenAI
+    "gpt-4o": {"input": 2.50, "output": 10.00, "cache_write": 2.50, "cache_read": 1.25, "label": "GPT-4o"},
+    "gpt-4o-mini": {"input": 0.15, "output": 0.60, "cache_write": 0.15, "cache_read": 0.075, "label": "GPT-4o mini"},
+    "o1": {"input": 15.00, "output": 60.00, "cache_write": 15.00, "cache_read": 7.50, "label": "OpenAI o1"},
+    "o3-mini": {"input": 1.10, "output": 4.40, "cache_write": 1.10, "cache_read": 0.55, "label": "OpenAI o3-mini"},
+
+    # Standard model fallback (Sonnet-tier baseline)
+    "default": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30, "label": "Standard AI Model ($3.00/$15.00 per 1M)"}
+}
+
+
+def match_model_pricing(model_name):
+    if not model_name:
+        return MODEL_PRICING["default"]
+    m = str(model_name).lower()
+    if "opus" in m:
+        return MODEL_PRICING["claude-opus"]
+    if "sonnet" in m:
+        return MODEL_PRICING["claude-sonnet"]
+    if "haiku" in m:
+        return MODEL_PRICING["claude-haiku"]
+    if "gemini" in m:
+        if "flash" in m:
+            return MODEL_PRICING["gemini-flash"]
+        return MODEL_PRICING["gemini-pro"]
+    if "gpt-4o-mini" in m:
+        return MODEL_PRICING["gpt-4o-mini"]
+    if "gpt-4o" in m:
+        return MODEL_PRICING["gpt-4o"]
+    if "o1" in m:
+        return MODEL_PRICING["o1"]
+    if "o3-mini" in m:
+        return MODEL_PRICING["o3-mini"]
+    return MODEL_PRICING["default"]
+
+
+def compute_cost(totals, models):
+    model_name = models[0] if (models and isinstance(models, list) and len(models) > 0) else "default"
+    pricing = match_model_pricing(model_name)
+    
+    in_tok = totals.get("input_tokens", 0)
+    out_tok = totals.get("output_tokens", 0)
+    cw_tok = totals.get("cache_creation_input_tokens", 0)
+    cr_tok = totals.get("cache_read_input_tokens", 0)
+
+    in_cost = (in_tok / 1_000_000.0) * pricing["input"]
+    out_cost = (out_tok / 1_000_000.0) * pricing["output"]
+    cw_cost = (cw_tok / 1_000_000.0) * pricing["cache_write"]
+    cr_cost = (cr_tok / 1_000_000.0) * pricing["cache_read"]
+    total = in_cost + out_cost + cw_cost + cr_cost
+
+    formatted = f"${total:.2f}" if total >= 0.01 else (f"${total:.3f}" if total > 0 else "$0.00")
+
+    return {
+        "total_usd": round(total, 4),
+        "currency": "USD",
+        "formatted": formatted,
+        "breakdown": {
+            "input_usd": round(in_cost, 4),
+            "output_usd": round(out_cost, 4),
+            "cache_write_usd": round(cw_cost, 4),
+            "cache_read_usd": round(cr_cost, 4)
+        },
+        "pricing_applied": pricing["label"],
+        "rates_per_million": {
+            "input": pricing["input"],
+            "output": pricing["output"],
+            "cache_write": pricing["cache_write"],
+            "cache_read": pricing["cache_read"]
+        }
+    }
+
 # Fallback only, for subagents started without the tag. Order matters.
 AGENT_HINTS = [
     ("skeptic-verifier", r"skeptic[\s_-]*verifier|verification"),
@@ -158,12 +244,15 @@ def process_claude(pdir, since, since_str):
             m[t] += a[t]
     agents = list(merged.values())
     totals = {t: sum(a[t] for a in agents) for t in TYPES}
+    tot_dict = {**totals, "total_tokens": sum(totals.values())}
+    sorted_models = sorted(all_models, key=lambda k: -all_models[k])
     return {
         "available": True,
         "source": "Claude Code session files",
         "since": since_str,
-        "totals": {**totals, "total_tokens": sum(totals.values())},
-        "models": sorted(all_models, key=lambda k: -all_models[k]),
+        "totals": tot_dict,
+        "models": sorted_models,
+        "cost": compute_cost(tot_dict, sorted_models),
         "agents": agents,
         "notes": "Counted from local Claude Code logs. Agent names matched from subagent prompts.",
     }
@@ -318,12 +407,15 @@ def process_antigravity(transcript_path, brain_dir, since, since_str):
     if not models:
         models.add("Gemini (Antigravity)")
 
+    tot_dict = {**totals, "total_tokens": sum(totals.values())}
+    sorted_models = sorted(list(models))
     return {
         "available": True,
         "source": "Antigravity session transcripts",
         "since": since_str,
-        "totals": {**totals, "total_tokens": sum(totals.values())},
-        "models": sorted(list(models)),
+        "totals": tot_dict,
+        "models": sorted_models,
+        "cost": compute_cost(tot_dict, sorted_models),
         "agents": agents,
         "notes": "Counted from local Antigravity transcript logs. Subagent tokens attributed via invoke_subagent conversation logs.",
     }
@@ -447,13 +539,15 @@ def estimate_usage(root, since_str, since=None):
     }
     totals["total_tokens"] = totals["input_tokens"] + totals["output_tokens"]
 
+    models = ["Estimated (Model-neutral)"]
     return {
         "available": True,
         "estimated": True,
         "source": "Deterministic estimate (code size and report lengths)",
         "since": since_str,
         "totals": totals,
-        "models": ["Estimated (Model-neutral)"],
+        "models": models,
+        "cost": compute_cost(totals, models),
         "agents": agents,
         "notes": "Calculated deterministically at 4 chars/token over repository code size and generated audit reports. Used as fallback when native session logs are absent.",
     }
