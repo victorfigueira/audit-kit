@@ -21,7 +21,7 @@ Run a comprehensive Full code audit across all ten dimensions using the audit-ki
 3. Follow all steps in `audit-kit/RUN.md` in order:
    - Prepare workspace and check project size. If `tools/size_check.py` alerts on size, prompt the user.
    - Run triage check.
-   - Launch auditors in parallel using `invoke_subagent` if subagent tools are available; otherwise run sequentially with clean context rereads.
-   - Verify Critical and High findings with the skeptic verifier.
+   - Launch auditors in parallel using `invoke_subagent` following `audit-kit/adapters/antigravity/subagents.md` (each with `TypeName: 'self'`, role, and `Prompt: 'audit-kit-agent: <name>...'`), ensuring isolated execution contexts without token or finding cross-contamination. If subagents are not supported, run sequentially with clean context rereads.
+   - Verify Critical and High findings with the skeptic verifier (launching verifiers in parallel with `invoke_subagent`).
    - Deduplicate and re-score.
    - Produce `audit/AUDIT.md`, `audit/findings.json`, and update the Excel tracker if Python `openpyxl` is available.

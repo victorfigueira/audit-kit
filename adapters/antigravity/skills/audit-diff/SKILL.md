@@ -18,6 +18,6 @@ Review git branch changes against a target base branch to produce a merge verdic
 2. If `no-update` is present, skip the update check.
 3. Run the triage agent with `audit-kit/agents/triage.md` in Diff mode against the base branch.
 4. Present the triage plan table and obtain user confirmation before running selected auditors.
-5. Run the selected auditors in parallel or sequentially.
-6. Verify Critical and High findings with the skeptic verifier.
+5. Run the selected auditors in parallel using `invoke_subagent` following `audit-kit/adapters/antigravity/subagents.md`, or sequentially if subagents are unsupported.
+6. Verify Critical and High findings with the skeptic verifier (using parallel `invoke_subagent` where supported).
 7. Write individual reports to `audit/diff/<dimension>.md` and the final verdict summary to `audit/diff/DIFF-AUDIT.md`.

@@ -38,7 +38,7 @@ flowchart LR
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | [AK-1](https://victorsfl.atlassian.net/browse/AK-1) | **Epic** | **Phase 1: Antigravity Full Parity & Modernization** | **6 SP** | **~3 days** | **2026-10-27** | **2026-10-29** | To Do |
 | [AK-2](https://victorsfl.atlassian.net/browse/AK-2) | Task | AK-1.1: Migrate Antigravity adapter to modern Skills (`.agents/skills/`) | 2 SP | 4–6 hrs | 2026-10-27 | 2026-10-27 | Done |
-| [AK-3](https://victorsfl.atlassian.net/browse/AK-3) | Task | AK-1.2: Implement native parallel subagents in Antigravity | 3 SP | 1 day | 2026-10-28 | 2026-10-28 | To Do |
+| [AK-3](https://victorsfl.atlassian.net/browse/AK-3) | Task | AK-1.2: Implement native parallel subagents in Antigravity | 3 SP | 1 day | 2026-10-28 | 2026-10-28 | Done |
 | [AK-4](https://victorsfl.atlassian.net/browse/AK-4) | Task | AK-1.3: Standardize rules injection for Antigravity (`GEMINI.md` / `.agents/rules/`) | 1 SP | 2–3 hrs | 2026-10-29 | 2026-10-29 | To Do |
 | [AK-5](https://victorsfl.atlassian.net/browse/AK-5) | **Epic** | **Phase 2: Agnostic Token Telemetry** | **7 SP** | **~2.5 days** | **2026-10-30** | **2026-11-03** | To Do |
 | [AK-6](https://victorsfl.atlassian.net/browse/AK-6) | Task | AK-2.1: Antigravity session and transcript parsing in `usage_report.py` | 5 SP | 1.5–2 days | 2026-10-30 | 2026-11-02 | To Do |

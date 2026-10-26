@@ -120,7 +120,7 @@ There are five roles:
 - **Skeptic verifier.** The red team. It receives each Critical and High finding on its own and tries to prove it is a false positive by reading the surrounding code. Only findings that survive reach `findings.json`, the tracker and the score. Its rules are in `agents/skeptic-verifier.md`.
 - **Tracker script.** `tools/generate_tracker.py` turns `audit/findings.json` into an Excel file and keeps your manual columns between runs.
 
-When the tool supports subagents (Claude Code), each auditor runs in its own context and in parallel. Otherwise the manager runs them one after another and rereads each auditor file, so findings from one dimension do not leak into another.
+When the tool supports subagents (Claude Code via dedicated agent definitions, or Antigravity via `invoke_subagent`), each auditor runs in its own isolated context and in parallel. Otherwise the manager runs them one after another and rereads each auditor file, so findings from one dimension do not leak into another.
 
 ## 3. Setting up a project
 
@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.4.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.5.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 

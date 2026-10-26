@@ -38,14 +38,16 @@ When you start any subagent (auditor, triage agent or skeptic verifier), make th
    - If `fresh_required` is true, this is a fresh run: show its `reasons` in one line, skip the triage agent and run every auditor of the mode.
    - Otherwise run the triage agent with `audit-kit/agents/triage.md` in Incremental mode, passing the tool and model, the script's `force_dimensions`, which it must mark Run, and its `untracked_changed` list. It writes `audit/triage.md`. Show its plan table in chat and continue without waiting. Auditors marked Skip are carried over: do not run them, and keep their report in `audit/` untouched.
 3. **Run the auditors.** For each auditor marked Run (or every auditor in the mode on a fresh run), follow its file in `audit-kit/agents/` together with `audit-kit/RULES.md`.
-   - If your tool supports subagents or parallel agents, run one per auditor, in parallel, each in its own context.
-   - If it does not, run them one after another and start each with a fresh reading of its file, so findings do not leak between dimensions.
+   - **Parallel subagents:** Run one subagent per auditor, in parallel, each in its own isolated context:
+     - In **Claude Code**: Launch the predefined subagents (`.claude/agents/*-auditor.md`).
+     - In **Antigravity**: Launch subagents concurrently with `invoke_subagent(TypeName='self', Role='<Dimension> Auditor', Prompt='audit-kit-agent: <name>\n...')` (see `audit-kit/adapters/antigravity/subagents.md`).
+   - **Sequential fallback:** If your tool does not support subagents, run them one after another and start each with a fresh reading of its file, so findings do not leak between dimensions.
    - Each auditor writes only its own report in `audit/`.
    - If the dimension has a previous report, the auditor reads it first and keeps the same ID for a finding that is still present, and numbers new findings after the highest previous ID. Fixed findings are listed under "Strengths" with their old ID. This keeps the tracker rows stable.
 4. **Check.** Confirm every expected report exists and follows the template. Rerun a failed auditor once; if it fails again, mark that dimension "Not completed".
 5. **Verify.** Send every Critical and High finding from the reports of this run to the skeptic verifier (`audit-kit/agents/skeptic-verifier.md`). Also send the carried-over findings listed in `unverified_findings` by `triage_check.py` (Critical and High findings that were never verified). Other findings of carried-over dimensions keep the verdict recorded in `findings.json`. Do not verify findings the user reinstated earlier (verification "Reinstated by user").
    - Give the verifier only the finding: ID, title, severity, location, evidence and impact. Never the auditor's full report or other findings.
-   - If your tool supports subagents, run one verifier per finding, in parallel; with more than 10 findings, group up to 5 from the same dimension per verifier. Otherwise verify them one after another, rereading the verifier file each time and setting aside what you concluded as manager.
+   - If your tool supports subagents, run one verifier per finding, in parallel (Claude Code: `skeptic-verifier` subagent; Antigravity: `invoke_subagent` with Role="Skeptic Verifier"); with more than 10 findings, group up to 5 from the same dimension per verifier. Otherwise verify them one after another, rereading the verifier file each time and setting aside what you concluded as manager.
    - Apply the verdicts: **Rejected** findings leave the findings list and the score; **Downgraded** findings take the new severity and keep the original in `original_severity`; **Confirmed** and **Inconclusive** findings stay as they are. Use any corrected location.
    - Write `audit/verification.md`: a summary line (checked, confirmed, downgraded, rejected, inconclusive) followed by every verdict block. Do not edit the auditors' reports.
    - If the user later disagrees with a rejection ("reinstate SEC-002"), move it back into the findings with verification "Reinstated by user", re-score, and rewrite `AUDIT.md`, `findings.json` and the tracker.
@@ -55,7 +57,7 @@ When you start any subagent (auditor, triage agent or skeptic verifier), make th
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.4.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.5.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",

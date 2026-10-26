@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.0 – 26/10/2026
+- Native Antigravity parallel subagents: added `adapters/antigravity/subagents.md` defining concurrent auditor and skeptic verifier execution via `invoke_subagent`.
+- Antigravity skills (`audit`, `audit-full`, `audit-diff`) and `RUN.md` now orchestrate auditors in parallel isolated contexts, eliminating context leakage between dimensions.
+- Updated user guide with Antigravity subagent capabilities.
+
 ## 2.4.0 – 26/10/2026
 - New Antigravity Skills adapter: modern `.agents/skills/<name>/SKILL.md` packages for `/audit`, `/audit-full`, `/audit-diff`, `/audit-jira`, and `/audit-check-update`, providing first-class slash commands and progressive disclosure in Google Antigravity.
 - Legacy Antigravity `.agents/workflows/` are preserved for backward compatibility.
