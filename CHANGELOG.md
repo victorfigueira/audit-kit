@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.2 – 26/10/2026
+- Silent Batch CVSS v3.1 Calculation: added automated in-memory finding enrichment in `tools/generate_dashboard.py` and `tools/cvss.py`, eliminating repetitive individual CLI executions per finding.
+- Security Auditor Workflow Refinement: updated `agents/security.md` to explicitly forbid executing shell commands per finding, avoiding disruptive terminal permission prompts.
+- Batch CLI Support in `tools/cvss.py`: added `--file` and direct JSON file argument support to enrich findings files in a single pass.
+- Resilient Vector Extraction: regex and multi-field vector extraction in `tools/cvss.py` to support raw strings, structured objects, and inline finding annotations.
+
 ## 2.11.1 – 26/10/2026
 - Fixed shell variable parameter expansion bug where unquoted shell heredocs or echoes expanded `$0` in `$0.11` to `zsh.11` and `$3`/`$15` in pricing labels to empty strings.
 - Added resilient numeric cost parsing and formatting in `templates/dashboard.html` that extracts numeric `total_usd` and formats `$X.XX`.

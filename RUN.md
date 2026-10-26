@@ -80,7 +80,7 @@ Choose the execution strategy that matches your platform:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.1",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.2",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
@@ -105,6 +105,7 @@ Choose the execution strategy that matches your platform:
    ```
    Dimension names must match the table in `audit-kit/RULES.md` exactly. Use the final scores, and leave "To verify" items out.
    - Each finding has `verification`: `Confirmed`, `Downgraded`, `Inconclusive`, `Reinstated by user` or `Not checked` (Medium and Low). Downgraded findings also have `original_severity`. Carried-over findings keep theirs.
+   - For Security findings (`SEC-NNN`), include `cvss`: either the raw vector string (`"CVSS:3.1/..."`) or structured object. Step 10 (`generate_dashboard.py`) and `tools/cvss.py` automatically calculate exact FIRST.org scores in batch without requiring repetitive shell executions.
    - `rejected` lists the findings the verifier rejected in this run and those carried over from dimensions that did not run, each with `id`, `dimension`, `title`, `location` and `reason`. They never count in scores.
    - `run_type` is `Fresh` or `Incremental`.
    - `untracked_hashes` copies the map from `triage_check.py`, so the next run can tell which untracked files changed.

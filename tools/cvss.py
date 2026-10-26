@@ -11,6 +11,7 @@ Usage (from project root):
 import argparse
 import json
 import math
+import os
 import re
 import sys
 
@@ -153,16 +154,104 @@ def calculate_cvss_31(metrics):
     }
 
 
+CVSS_VECTOR_PATTERN = re.compile(
+    r"(CVSS:3\.[01]/AV:[NALP]/AC:[LH]/PR:[NLH]/UI:[NR]/S:[UC]/C:[NLH]/I:[NLH]/A:[NLH])",
+    re.IGNORECASE
+)
+
+
 def score_vector_string(vector_str):
     metrics = parse_vector(vector_str)
     return calculate_cvss_31(metrics)
 
 
+def extract_cvss_vector(finding):
+    """Extract CVSS vector string from finding dict or text fields."""
+    if not isinstance(finding, dict):
+        return None
+    cvss = finding.get("cvss")
+    if isinstance(cvss, str):
+        match = CVSS_VECTOR_PATTERN.search(cvss)
+        if match:
+            return match.group(1).upper()
+        if cvss.upper().startswith("CVSS:"):
+            return cvss.strip().upper()
+    elif isinstance(cvss, dict):
+        vec = cvss.get("vector")
+        if vec:
+            return str(vec).strip().upper()
+
+    if finding.get("cvss_vector"):
+        return str(finding["cvss_vector"]).strip().upper()
+
+    for field in ("description", "rationale", "recommendation", "evidence", "title"):
+        val = finding.get(field)
+        if isinstance(val, str):
+            match = CVSS_VECTOR_PATTERN.search(val)
+            if match:
+                return match.group(1).upper()
+
+    return None
+
+
+def enrich_finding(finding):
+    """Enrich a finding dictionary with computed CVSS metrics if a vector is found."""
+    if not isinstance(finding, dict):
+        return finding
+    vector_str = extract_cvss_vector(finding)
+    if not vector_str:
+        return finding
+    try:
+        res = score_vector_string(vector_str)
+        finding["cvss"] = {
+            "score": res["score"],
+            "rating": res["rating"],
+            "vector": res["vector"],
+            "metrics": res["metrics"]
+        }
+    except Exception:
+        pass
+    return finding
+
+
+def enrich_findings_list(findings):
+    """Enrich a list of finding dicts in place with CVSS scores."""
+    if not isinstance(findings, list):
+        return findings
+    for f in findings:
+        enrich_finding(f)
+    return findings
+
+
 def main():
-    parser = argparse.ArgumentParser(description="CVSS v3.1 calculator and validator.")
-    parser.add_argument("vector", help="CVSS v3.1 vector string (e.g. CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)")
+    parser = argparse.ArgumentParser(description="CVSS v3.1 calculator, validator, and batch enricher.")
+    parser.add_argument("vector", nargs="?", help="CVSS v3.1 vector string or path to JSON findings file")
+    parser.add_argument("--file", help="Path to findings JSON file to enrich in batch")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     args = parser.parse_args()
+
+    target_file = args.file
+    if not target_file and args.vector and (os.path.isfile(args.vector) or args.vector.endswith(".json")):
+        target_file = args.vector
+
+    if target_file:
+        try:
+            with open(target_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            findings = data.get("findings", []) if isinstance(data, dict) else data
+            enrich_findings_list(findings)
+            with open(target_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            count = sum(1 for f in findings if isinstance(f, dict) and "cvss" in f and isinstance(f["cvss"], dict))
+            print(f"✅ Successfully enriched {count} finding(s) with CVSS v3.1 scores in '{target_file}'")
+            return 0
+        except Exception as e:
+            print(f"Error processing file '{target_file}': {e}", file=sys.stderr)
+            return 1
+
+    if not args.vector:
+        parser.print_help()
+        return 1
 
     try:
         res = score_vector_string(args.vector)

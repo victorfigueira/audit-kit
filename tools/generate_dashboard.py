@@ -13,6 +13,22 @@ import os
 import sys
 import webbrowser
 
+# Safe import of CVSS enricher
+try:
+    from cvss import enrich_findings_list
+except ImportError:
+    try:
+        from tools.cvss import enrich_findings_list
+    except ImportError:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        if script_dir not in sys.path:
+            sys.path.insert(0, script_dir)
+        try:
+            from cvss import enrich_findings_list
+        except ImportError:
+            def enrich_findings_list(findings):
+                return findings
+
 
 def load_json(path):
     if not os.path.exists(path):
@@ -49,7 +65,9 @@ def collect_snapshots(snapshots_dir):
             }
         
         # Include list of findings for diff comparison
-        meta["findings"] = findings_data.get("findings", [])
+        findings_list = findings_data.get("findings", [])
+        enrich_findings_list(findings_list)
+        meta["findings"] = findings_list
         snapshots.append(meta)
     
     # Sort chronologically
@@ -79,6 +97,10 @@ def generate_dashboard(audit_dir="audit", template_path=None, output_path=None, 
     # Ensure project name
     if not audit_data.get("project"):
         audit_data["project"] = os.path.basename(os.path.abspath("."))
+
+    # Enrich findings with calculated CVSS metrics if vectors are present
+    if "findings" in audit_data and isinstance(audit_data["findings"], list):
+        enrich_findings_list(audit_data["findings"])
 
     # Collect snapshots
     snaps_dir = os.path.join(audit_path, "snapshots")
