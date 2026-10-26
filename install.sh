@@ -3,10 +3,44 @@
 # Usage (from the project root):  bash audit-kit/install.sh [claude|antigravity|gemini|all]
 set -euo pipefail
 
-TARGET="${1:-all}"
+TARGET="all"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --target=*) TARGET="${1#*=}"; shift ;;
+    --target) TARGET="$2"; shift 2 ;;
+    -h|--help)
+      echo "Usage: bash audit-kit/install.sh [options] [target]"
+      echo ""
+      echo "Targets:  all, claude, antigravity, gemini, auto"
+      echo "Options:"
+      echo "  --target <target>   Specify installation target"
+      echo "  -h, --help          Show this help message"
+      exit 0 ;;
+    claude|antigravity|gemini|all|auto) TARGET="$1"; shift ;;
+    *) echo "Unknown option or target: $1 (use claude, antigravity, gemini, all, or auto)"; exit 1 ;;
+  esac
+done
+
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(dirname "$KIT")"
 cd "$ROOT"
+
+# Auto-detect target if requested
+if [ "$TARGET" = "auto" ]; then
+  DETECTED=()
+  [ -d .claude ] && DETECTED+=(claude)
+  ([ -d .agents ] || [ -d .agent ] || [ -f GEMINI.md ]) && DETECTED+=(antigravity)
+  [ -d .gemini ] && DETECTED+=(gemini)
+  if [ ${#DETECTED[@]} -eq 0 ]; then
+    TARGET="all"
+  elif [ ${#DETECTED[@]} -eq 1 ]; then
+    TARGET="${DETECTED[0]}"
+    echo "Auto-detected platform target: $TARGET"
+  else
+    TARGET="all"
+    echo "Detected multiple platforms (${DETECTED[*]}); installing all"
+  fi
+fi
 
 copy_dir() { # src dst
   # Adapters that point to audit-kit/ are the kit's own and are refreshed.
@@ -57,7 +91,7 @@ add_rules() { # file
 }
 
 case "$TARGET" in claude|antigravity|gemini|all) ;; *)
-  echo "Unknown target: $TARGET (use claude, antigravity, gemini or all)"; exit 1 ;; esac
+  echo "Unknown target: $TARGET (use claude, antigravity, gemini, all, or auto)"; exit 1 ;; esac
 
 echo "Installing audit-kit $(cat "$KIT/VERSION" 2>/dev/null) into $ROOT"
 
@@ -89,6 +123,11 @@ if [ "$TARGET" = claude ] || [ "$TARGET" = all ]; then
 fi
 if [ "$TARGET" = antigravity ] || [ "$TARGET" = all ]; then
   echo "Antigravity:"
+  # Auto-migrate legacy .agent folder if present without .agents
+  if [ -d .agent ] && [ ! -d .agents ]; then
+    echo "  migrating legacy .agent/ -> .agents/"
+    mv .agent .agents
+  fi
   if [ -d "$KIT/adapters/antigravity/skills" ]; then
     copy_skills "$KIT/adapters/antigravity/skills" .agents/skills
   fi

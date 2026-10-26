@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.7.2 – 26/10/2026
+- Multi-target options in `install.sh` and `get.sh`: added CLI flag parsing (`--target`, `-h/--help`, `auto` discovery).
+- Automatic legacy `.agent/` to `.agents/` directory migration in `install.sh`.
+- Completed Phase 3 (Orchestrator & Installer Standardization).
+
 ## 2.7.1 – 26/10/2026
 - Universal subagent dispatch protocol in `RUN.md`: formalized explicit execution strategies for Claude Code, Antigravity, and single-threaded sequential agents.
 

@@ -11,7 +11,6 @@ set -euo pipefail
 
 REPO="${AUDIT_KIT_REPO:-https://github.com/victorfigueira/audit-kit.git}"
 REF="${AUDIT_KIT_REF:-main}"
-TARGET="${1:-all}"
 
 command -v git >/dev/null || { echo "git is required."; exit 1; }
 
@@ -33,4 +32,4 @@ if [ -d audit-kit ]; then
 fi
 mv "$TMP/audit-kit" audit-kit
 
-bash audit-kit/install.sh "$TARGET"
+bash audit-kit/install.sh "$@"
