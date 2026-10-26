@@ -1,0 +1,14 @@
+---
+description: Code audit procedures and read-only execution guidelines using audit-kit
+globs: *
+alwaysApply: false
+---
+# Code Audits (audit-kit)
+
+When the user asks to run an audit, review code quality, or execute `/audit`:
+1. Read `audit-kit/RUN.md` fully before starting.
+2. Follow the requested mode (Standard by default, Full when requested, Diff for PRs/merges).
+3. Audit agents and tools are strictly read-only: write findings exclusively to `audit/`. Never edit project code during an audit.
+4. Use `audit-kit-agent: <name>` headers and keep dimension findings isolated from one another.
+5. Verify Critical and High findings with the skeptic verifier (`audit-kit/agents/skeptic-verifier.md`).
+6. Generate `audit/AUDIT.md`, `audit/findings.json`, and run `python3 audit-kit/tools/generate_tracker.py` for Excel tracking.

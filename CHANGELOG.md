@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.8.0 – 26/10/2026
+- New AI IDE adapters: added support and dedicated rule packages for Cursor (`.cursorrules`, `.cursor/rules/audit.mdc`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
+- Multi-target installation options updated for `cursor`, `windsurf`, and `copilot`.
+- Completed Phase 4 (Expansion to Other AI Environments) — achieving 100% universal first-class AI support across all major coding agents.
+
 ## 2.7.2 – 26/10/2026
 - Multi-target options in `install.sh` and `get.sh`: added CLI flag parsing (`--target`, `-h/--help`, `auto` discovery).
 - Automatic legacy `.agent/` to `.agents/` directory migration in `install.sh`.

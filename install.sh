@@ -11,13 +11,13 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       echo "Usage: bash audit-kit/install.sh [options] [target]"
       echo ""
-      echo "Targets:  all, claude, antigravity, gemini, auto"
+      echo "Targets:  all, claude, antigravity, gemini, cursor, windsurf, copilot, auto"
       echo "Options:"
       echo "  --target <target>   Specify installation target"
       echo "  -h, --help          Show this help message"
       exit 0 ;;
-    claude|antigravity|gemini|all|auto) TARGET="$1"; shift ;;
-    *) echo "Unknown option or target: $1 (use claude, antigravity, gemini, all, or auto)"; exit 1 ;;
+    claude|antigravity|gemini|cursor|windsurf|copilot|all|auto) TARGET="$1"; shift ;;
+    *) echo "Unknown option or target: $1 (use claude, antigravity, gemini, cursor, windsurf, copilot, all, or auto)"; exit 1 ;;
   esac
 done
 
@@ -31,6 +31,9 @@ if [ "$TARGET" = "auto" ]; then
   [ -d .claude ] && DETECTED+=(claude)
   ([ -d .agents ] || [ -d .agent ] || [ -f GEMINI.md ]) && DETECTED+=(antigravity)
   [ -d .gemini ] && DETECTED+=(gemini)
+  ([ -d .cursor ] || [ -f .cursorrules ]) && DETECTED+=(cursor)
+  [ -f .windsurfrules ] && DETECTED+=(windsurf)
+  ([ -f .github/copilot-instructions.md ]) && DETECTED+=(copilot)
   if [ ${#DETECTED[@]} -eq 0 ]; then
     TARGET="all"
   elif [ ${#DETECTED[@]} -eq 1 ]; then
@@ -90,8 +93,8 @@ add_rules() { # file
   fi
 }
 
-case "$TARGET" in claude|antigravity|gemini|all) ;; *)
-  echo "Unknown target: $TARGET (use claude, antigravity, gemini, all, or auto)"; exit 1 ;; esac
+case "$TARGET" in claude|antigravity|gemini|cursor|windsurf|copilot|all) ;; *)
+  echo "Unknown target: $TARGET (use claude, antigravity, gemini, cursor, windsurf, copilot, all, or auto)"; exit 1 ;; esac
 
 echo "Installing audit-kit $(cat "$KIT/VERSION" 2>/dev/null) into $ROOT"
 
@@ -142,6 +145,37 @@ fi
 if [ "$TARGET" = gemini ] || [ "$TARGET" = all ]; then
   echo "Gemini CLI:"
   copy_dir "$KIT/adapters/gemini/commands" .gemini/commands
+fi
+if [ "$TARGET" = cursor ] || [ "$TARGET" = all ]; then
+  echo "Cursor:"
+  if [ -d "$KIT/adapters/cursor/rules" ]; then
+    copy_dir "$KIT/adapters/cursor/rules" .cursor/rules
+  fi
+  if [ -f .cursorrules ]; then
+    add_rules .cursorrules
+  elif [ "$TARGET" = cursor ]; then
+    cat "$KIT/adapters/cursor/cursorrules" > .cursorrules
+    echo "  created: .cursorrules"
+  fi
+fi
+if [ "$TARGET" = windsurf ] || [ "$TARGET" = all ]; then
+  echo "Windsurf:"
+  if [ -f .windsurfrules ]; then
+    add_rules .windsurfrules
+  elif [ "$TARGET" = windsurf ]; then
+    cat "$KIT/adapters/windsurf/windsurfrules" > .windsurfrules
+    echo "  created: .windsurfrules"
+  fi
+fi
+if [ "$TARGET" = copilot ] || [ "$TARGET" = all ]; then
+  echo "GitHub Copilot:"
+  mkdir -p .github
+  if [ -f .github/copilot-instructions.md ]; then
+    add_rules .github/copilot-instructions.md
+  elif [ "$TARGET" = copilot ]; then
+    cat "$KIT/adapters/copilot/copilot-instructions.md" > .github/copilot-instructions.md
+    echo "  created: .github/copilot-instructions.md"
+  fi
 fi
 
 echo "Done. Reload your IDE window so the new commands appear."

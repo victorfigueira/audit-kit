@@ -1,0 +1,7 @@
+<!-- audit-kit:start -->
+## Code audits (audit-kit)
+- To run a code audit, follow `audit-kit/RUN.md`. Standard mode by default; Full mode when asked; Diff mode for merge reviews.
+- Cascade agents are strictly read-only during an audit: write findings only inside `audit/`. Never edit project code or configurations.
+- Execute auditors dimension-by-dimension with clean context rereads following `audit-kit/RULES.md`.
+- All audit output, code comments, commits, and documentation must be in English.
+<!-- audit-kit:end -->

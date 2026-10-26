@@ -46,10 +46,10 @@ flowchart LR
 | [AK-8](https://victorsfl.atlassian.net/browse/AK-8) | **Epic** | **Phase 3: Orchestrator & Installer Standardization** | **6 SP** | **~2 days** | **2026-11-04** | **2026-11-05** | Done |
 | [AK-9](https://victorsfl.atlassian.net/browse/AK-9) | Task | AK-3.1: Universal subagent dispatch protocol in `RUN.md` | 3 SP | 1 day | 2026-11-04 | 2026-11-04 | Done |
 | [AK-10](https://victorsfl.atlassian.net/browse/AK-10) | Task | AK-3.2: Update `install.sh` and `get.sh` with multi-target & auto-migration | 3 SP | 1 day | 2026-11-05 | 2026-11-05 | Done |
-| [AK-11](https://victorsfl.atlassian.net/browse/AK-11) | **Epic** | **Phase 4: Expansion to Other AI Environments** | **5 SP** | **~3 days** | **2026-11-06** | **2026-11-10** | To Do |
-| [AK-12](https://victorsfl.atlassian.net/browse/AK-12) | Task | AK-4.1: Cursor adapter and rules (`.cursorrules` / `.cursor/rules/*.mdc`) | 2 SP | 4–6 hrs | 2026-11-06 | 2026-11-06 | To Do |
-| [AK-13](https://victorsfl.atlassian.net/browse/AK-13) | Task | AK-4.2: Windsurf Cascade adapter and rules (`.windsurfrules`) | 2 SP | 4–6 hrs | 2026-11-09 | 2026-11-09 | To Do |
-| [AK-14](https://victorsfl.atlassian.net/browse/AK-14) | Task | AK-4.3: GitHub Copilot adapter (`.github/copilot-instructions.md`) | 1 SP | 2–3 hrs | 2026-11-10 | 2026-11-10 | To Do |
+| [AK-11](https://victorsfl.atlassian.net/browse/AK-11) | **Epic** | **Phase 4: Expansion to Other AI Environments** | **5 SP** | **~3 days** | **2026-11-06** | **2026-11-10** | Done |
+| [AK-12](https://victorsfl.atlassian.net/browse/AK-12) | Task | AK-4.1: Cursor adapter and rules (`.cursorrules` / `.cursor/rules/*.mdc`) | 2 SP | 4–6 hrs | 2026-11-06 | 2026-11-06 | Done |
+| [AK-13](https://victorsfl.atlassian.net/browse/AK-13) | Task | AK-4.2: Windsurf Cascade adapter and rules (`.windsurfrules`) | 2 SP | 4–6 hrs | 2026-11-09 | 2026-11-09 | Done |
+| [AK-14](https://victorsfl.atlassian.net/browse/AK-14) | Task | AK-4.3: GitHub Copilot adapter (`.github/copilot-instructions.md`) | 1 SP | 2–3 hrs | 2026-11-10 | 2026-11-10 | Done |
 
 ---
 

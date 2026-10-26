@@ -23,7 +23,7 @@ This guide explains how audit-kit works, how to use it day to day and how to mai
 
 audit-kit is a team of AI agents that audits a code repository. It has ten auditors, one per quality dimension, a skeptic verifier that tries to knock down every Critical and High finding, and a manager that runs them, merges their reports and scores the project from 1 to 10.
 
-It is plain Markdown plus two shell scripts and one Python script. Any agent tool that can read files can run it. Claude Code, Antigravity and Gemini CLI get slash commands through small adapter files.
+It is plain Markdown plus two shell scripts and one Python script. Any agent tool that can read files can run it. Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf, and GitHub Copilot get direct slash commands or dedicated rules through adapter files.
 
 The auditors are read-only. They write only inside the `audit/` folder and never change code, install packages, connect to databases or cloud accounts or push to git.
 
@@ -139,7 +139,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.7.2` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.8.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
