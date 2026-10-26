@@ -50,7 +50,11 @@ Choose the execution strategy that matches your platform:
 
 ## Steps
 
-1. **Prepare.** Create `audit/` at the project root if missing. If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the start time in UTC (`date -u +%Y-%m-%dT%H:%M:%SZ`), the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
+1. **Prepare.** Create `audit/` at the project root if missing. If a prior audit exists (`audit/findings.json` or `audit/AUDIT.md`), archive it automatically as a historical snapshot:
+   ```bash
+   python3 audit-kit/tools/snapshot.py create --if-exists
+   ```
+   If `audit/project-context.md` does not exist, copy `audit-kit/templates/project-context.md` there, fill it in from the README, package files and folder structure, mark doubts as TO CONFIRM, and tell the user before continuing. Record the start time in UTC (`date -u +%Y-%m-%dT%H:%M:%SZ`), the current branch, short commit hash, the kit version from `audit-kit/VERSION` and the tool and model running this audit (for example `Claude Code` and `claude-opus-5-5`, or `Antigravity` and the Gemini model selected). Write `unknown` for anything you cannot tell; never guess.
    - Use the `kit_version` and `context_hash` that `triage_check.py` reports in step 2 when you write `findings.json`.
    - **Size check.** Run `python3 audit-kit/tools/size_check.py --json` (add `--threshold <n>` if the project context sets a size warning threshold) and keep the result for `findings.json`. If it reports `over_threshold` and every auditor of a Full audit is about to run, show the size in one line and ask whether to continue, switch to Standard or stop. Otherwise mention the size in one line and carry on. If Python is missing, record the code size as not available.
 2. **Triage.** Run `python3 audit-kit/tools/triage_check.py --mode <standard|full> --tool "<tool>" --model "<model>"` (add `--fresh` if the user asked for a fresh audit). Its JSON is binding; never override it with your own judgement.
@@ -76,7 +80,7 @@ Choose the execution strategy that matches your platform:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.8.1",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.9.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
@@ -111,7 +115,8 @@ Choose the execution strategy that matches your platform:
    - Include the findings of carried-over dimensions, copied from the previous `findings.json`, so the tracker does not mark them "Not found in latest audit".
    - Keep entries in `dimensions` for dimensions outside the current mode that the previous file had (for example Full dimensions during a Standard run), but leave them out of `scores` and the overall score.
 9. **Update the tracker.** Run `python3 audit-kit/tools/generate_tracker.py`. It reads `audit/findings.json` and creates or updates `audit/audit-tracker.xlsx`, keeping Status, Owner, dates, Jira key and Notes from earlier runs. If Python or `openpyxl` is missing, do not install anything: tell the user to run `pip3 install openpyxl` and skip this step.
-10. **Report in chat** (maximum 15 lines, in the user's language):
+10. **Generate the interactive dashboard.** Run `python3 audit-kit/tools/generate_dashboard.py`. It reads `audit/findings.json` and `audit/snapshots/` to generate a self-contained, standalone `audit/dashboard.html` that can be viewed directly in any browser (`file://`).
+11. **Report in chat** (maximum 15 lines, in the user's language):
    ```
    Audit complete · Mode: <Standard|Full> · <tool> / <model>
    Overall score: <x.x>/10
@@ -119,7 +124,7 @@ Choose the execution strategy that matches your platform:
    Critical: <n> · High: <n> · To verify: <n>
    Verifier: <checked> checked · <rejected> rejected · <downgraded> downgraded
    Tokens: <total> (input <n> · output <n> · cache write <n> · cache read <n>) or "not available"
-   Files: audit/AUDIT.md · audit/audit-tracker.xlsx
+   Files: audit/AUDIT.md · audit/audit-tracker.xlsx · audit/dashboard.html
    ```
 
 ## Diff mode

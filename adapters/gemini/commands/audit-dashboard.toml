@@ -1,0 +1,6 @@
+description = "Generate and display the standalone interactive HTML dashboard for audit-kit"
+prompt = """
+Run the dashboard generator:
+1. Run `python3 audit-kit/tools/generate_dashboard.py`.
+2. Confirm `audit/dashboard.html` exists and provide the user with the file path.
+"""

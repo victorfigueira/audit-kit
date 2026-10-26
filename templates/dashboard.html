@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>audit-kit Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151d30;
+      --card-border: #23314f;
+      --card-hover: #1c2742;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      --accent: #38bdf8;
+      --critical: #ef4444;
+      --critical-bg: rgba(239, 68, 68, 0.15);
+      --high: #f97316;
+      --high-bg: rgba(249, 115, 22, 0.15);
+      --medium: #eab308;
+      --medium-bg: rgba(234, 179, 8, 0.15);
+      --low: #38bdf8;
+      --low-bg: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    .container { max-width: 1280px; margin: 0 auto; padding: 24px 20px; }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+    .brand h1 { font-size: 1.75rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .brand h1 span.badge { font-size: 0.8rem; background: #1e293b; color: var(--accent); padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--card-border); }
+    .meta-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .pill { font-size: 0.8rem; background: var(--card-bg); border: 1px solid var(--card-border); padding: 4px 10px; border-radius: 6px; color: var(--text-muted); }
+    .pill strong { color: var(--text); }
+
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 18px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Stat Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 2.2rem; font-weight: 800; margin: 8px 0; color: #fff; }
+    .stat-sub { font-size: 0.8rem; color: var(--text-subtle); }
+
+    .score-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 4px solid var(--card-border);
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+    .score-high { border-color: var(--success); color: var(--success); }
+    .score-mid { border-color: var(--medium); color: var(--medium); }
+    .score-low { border-color: var(--critical); color: var(--critical); }
+
+    /* Severity badges */
+    .sev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sev-critical { background: var(--critical-bg); color: var(--critical); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .sev-high { background: var(--high-bg); color: var(--high); border: 1px solid rgba(249, 115, 22, 0.4); }
+    .sev-medium { background: var(--medium-bg); color: var(--medium); border: 1px solid rgba(234, 179, 8, 0.4); }
+    .sev-low { background: var(--low-bg); color: var(--low); border: 1px solid rgba(56, 189, 248, 0.4); }
+
+    /* Dimensions Grid */
+    .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; color: #fff; }
+    .dim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .dim-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dim-card:hover { border-color: var(--accent); background: var(--card-hover); }
+    .dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .dim-title { font-size: 0.95rem; font-weight: 600; }
+    .dim-score { font-size: 1.1rem; font-weight: 800; }
+    .dim-bar-wrap { background: #23314f; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+    .dim-bar { height: 100%; border-radius: 3px; }
+
+    /* Findings Filter & Explorer */
+    .filter-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .search-box:focus { outline: none; border-color: var(--accent); }
+    .filter-btn {
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { color: #fff; border-color: var(--text-muted); }
+    .filter-btn.active { background: var(--accent); color: #0b0f19; border-color: var(--accent); }
+
+    .findings-list { display: flex; flex-direction: column; gap: 12px; }
+    .finding-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      transition: all 0.2s;
+    }
+    .finding-card:hover { border-color: #3b82f6; }
+    .finding-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .finding-id { font-family: monospace; font-weight: 700; font-size: 0.9rem; color: var(--accent); }
+    .finding-title { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+    .finding-loc { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); background: #0b0f19; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+    .finding-body { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px; }
+    .finding-details {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .detail-item strong { display: block; color: var(--text); margin-bottom: 2px; }
+
+    /* Snapshots tab */
+    .snap-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .snap-table th, .snap-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.85rem;
+    }
+    .snap-table th { background: #1a233a; color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+    .snap-table tr:hover td { background: var(--card-hover); }
+
+    .diff-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .diff-group { margin-bottom: 16px; }
+    .diff-group h4 { font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .diff-item { padding: 8px 12px; background: #0b0f19; border-radius: 6px; font-size: 0.85rem; margin-bottom: 6px; border-left: 3px solid transparent; }
+    .diff-resolved { border-left-color: var(--success); }
+    .diff-new { border-left-color: var(--critical); }
+    .diff-persistent { border-left-color: var(--medium); }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>
+          audit-kit
+          <span class="badge" id="header-version">v2.9.0</span>
+        </h1>
+        <div class="meta-pills">
+          <div class="pill">Project: <strong id="header-project">audit-kit</strong></div>
+          <div class="pill">Branch: <strong id="header-branch">main</strong></div>
+          <div class="pill">Commit: <strong id="header-commit">-</strong></div>
+          <div class="pill">Date: <strong id="header-date">-</strong></div>
+          <div class="pill">Mode: <strong id="header-mode">Standard</strong></div>
+          <div class="pill">Tool: <strong id="header-tool">-</strong></div>
+        </div>
+      </div>
+      <div>
+        <button class="filter-btn" onclick="window.print()">🖨️ Print / PDF</button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview & Scores</button>
+      <button class="tab-btn" onclick="switchTab('findings')">🔍 Findings Explorer (<span id="tab-findings-count">0</span>)</button>
+      <button class="tab-btn" onclick="switchTab('snapshots')">⏱️ Snapshot History (<span id="tab-snaps-count">0</span>)</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card" style="align-items: center; text-align: center;">
+          <div class="stat-label">Overall Score</div>
+          <div class="score-circle score-high" id="card-overall-score">-</div>
+          <div class="stat-sub" id="card-score-sub">Scale 1–10</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Findings</div>
+          <div class="stat-value" id="card-total-findings">0</div>
+          <div class="stat-sub">Across audited dimensions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Severity Breakdown</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+            <span class="sev-badge sev-critical">Crit: <span id="count-crit">0</span></span>
+            <span class="sev-badge sev-high">High: <span id="count-high">0</span></span>
+            <span class="sev-badge sev-medium">Med: <span id="count-med">0</span></span>
+            <span class="sev-badge sev-low">Low: <span id="count-low">0</span></span>
+          </div>
+          <div class="stat-sub" style="margin-top: 12px;" id="stat-verifier-status">Verified findings only</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Code Size & Scope</div>
+          <div class="stat-value" id="card-code-files" style="font-size: 1.8rem;">-</div>
+          <div class="stat-sub" id="card-code-sub">Files in audit scope</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Dimension Scores</h2>
+      <div class="dim-grid" id="dimension-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 2: FINDINGS EXPLORER -->
+    <div id="tab-findings" class="tab-content">
+      <div class="filter-bar">
+        <input type="text" class="search-box" id="finding-search" placeholder="Search by ID, keyword, file path or title..." oninput="filterFindings()">
+        <button class="filter-btn active" id="f-sev-all" onclick="setSeverityFilter('all')">All Severities</button>
+        <button class="filter-btn" id="f-sev-critical" onclick="setSeverityFilter('Critical')">Critical</button>
+        <button class="filter-btn" id="f-sev-high" onclick="setSeverityFilter('High')">High</button>
+        <button class="filter-btn" id="f-sev-medium" onclick="setSeverityFilter('Medium')">Medium</button>
+        <button class="filter-btn" id="f-sev-low" onclick="setSeverityFilter('Low')">Low</button>
+      </div>
+
+      <div class="findings-list" id="findings-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: SNAPSHOT HISTORY -->
+    <div id="tab-snapshots" class="tab-content">
+      <h2 class="section-title">Historical Audit Snapshots</h2>
+      <table class="snap-table">
+        <thead>
+          <tr>
+            <th>Snapshot ID</th>
+            <th>Date</th>
+            <th>Commit</th>
+            <th>Mode</th>
+            <th>Score</th>
+            <th>Findings</th>
+            <th>Tool</th>
+          </tr>
+        </thead>
+        <tbody id="snapshots-table-body">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+
+      <h2 class="section-title" style="margin-top: 32px;">Snapshot Diff & Comparison</h2>
+      <div class="filter-bar">
+        <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Compare with:</label>
+        <select id="diff-snapshot-select" class="search-box" style="max-width: 320px;" onchange="renderSnapshotDiff()">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+      <div class="diff-box" id="diff-results-box">
+        <div class="empty-state">Select a snapshot to compare with the active audit.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INJECTED AUDIT DATA PAYLOAD -->
+  <script id="audit-data" type="application/json">
+    __AUDIT_DATA_PLACEHOLDER__
+  </script>
+
+  <!-- DASHBOARD SCRIPT -->
+  <script>
+    let auditData = {};
+    let activeSeverity = 'all';
+    let activeDimension = 'all';
+
+    function init() {
+      try {
+        const raw = document.getElementById('audit-data').textContent.trim();
+        auditData = JSON.parse(raw);
+      } catch (e) {
+        console.error("Failed to parse audit data", e);
+        auditData = { findings: [], scores: {}, snapshots: [] };
+      }
+
+      renderHeader();
+      renderStats();
+      renderDimensions();
+      renderFindings();
+      renderSnapshots();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const targetContent = document.getElementById('tab-' + tabId);
+      if (targetContent) targetContent.classList.add('active');
+    }
+
+    function renderHeader() {
+      document.getElementById('header-version').textContent = 'v' + (auditData.kit_version || '2.9.0');
+      document.getElementById('header-project').textContent = auditData.project || 'audit-kit';
+      document.getElementById('header-branch').textContent = auditData.branch || 'main';
+      document.getElementById('header-commit').textContent = (auditData.commit || '').substring(0, 8) || '-';
+      document.getElementById('header-date').textContent = auditData.date || '-';
+      document.getElementById('header-mode').textContent = auditData.mode || 'Standard';
+      document.getElementById('header-tool').textContent = (auditData.tool || '') + (auditData.model ? ' (' + auditData.model + ')' : '');
+      document.getElementById('tab-findings-count').textContent = (auditData.findings || []).length;
+      document.getElementById('tab-snaps-count').textContent = (auditData.snapshots || []).length;
+    }
+
+    function renderStats() {
+      const scores = auditData.scores || {};
+      const validScores = Object.values(scores).filter(s => typeof s === 'number');
+      const overall = auditData.overall_score !== undefined && auditData.overall_score !== null 
+        ? auditData.overall_score 
+        : (validScores.length ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1) : 'N/A');
+      
+      const scoreCard = document.getElementById('card-overall-score');
+      scoreCard.textContent = overall;
+      scoreCard.className = 'score-circle ' + (overall >= 8.5 ? 'score-high' : (overall >= 7 ? 'score-mid' : 'score-low'));
+
+      const findings = auditData.findings || [];
+      document.getElementById('card-total-findings').textContent = findings.length;
+
+      let crit = 0, high = 0, med = 0, low = 0;
+      findings.forEach(f => {
+        const sev = (f.severity || '').toLowerCase();
+        if (sev === 'critical') crit++;
+        else if (sev === 'high') high++;
+        else if (sev === 'medium') med++;
+        else if (sev === 'low') low++;
+      });
+      document.getElementById('count-crit').textContent = crit;
+      document.getElementById('count-high').textContent = high;
+      document.getElementById('count-med').textContent = med;
+      document.getElementById('count-low').textContent = low;
+
+      if (auditData.code_size) {
+        document.getElementById('card-code-files').textContent = auditData.code_size.files || '-';
+        document.getElementById('card-code-sub').textContent = `${(auditData.code_size.lines || 0).toLocaleString()} lines (${(auditData.code_size.estimated_tokens || 0).toLocaleString()} tokens)`;
+      }
+    }
+
+    function renderDimensions() {
+      const container = document.getElementById('dimension-grid');
+      container.innerHTML = '';
+      const scores = auditData.scores || {};
+      
+      for (const [dim, score] of Object.entries(scores)) {
+        const card = document.createElement('div');
+        card.className = 'dim-card';
+        card.onclick = () => {
+          activeDimension = dim;
+          switchTab('findings');
+          filterFindings();
+        };
+
+        const pct = Math.min(Math.max((score / 10) * 100, 0), 100);
+        const color = score >= 8.5 ? 'var(--success)' : (score >= 7 ? 'var(--medium)' : 'var(--critical)');
+
+        card.innerHTML = `
+          <div class="dim-header">
+            <span class="dim-title">${dim}</span>
+            <span class="dim-score" style="color: ${color};">${typeof score === 'number' ? score.toFixed(1) : score}</span>
+          </div>
+          <div class="dim-bar-wrap">
+            <div class="dim-bar" style="width: ${pct}%; background: ${color};"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function setSeverityFilter(sev) {
+      activeSeverity = sev;
+      document.querySelectorAll('.filter-bar button').forEach(b => {
+        if (b.id && b.id.startsWith('f-sev-')) {
+          b.classList.toggle('active', b.id === 'f-sev-' + sev.toLowerCase());
+        }
+      });
+      filterFindings();
+    }
+
+    function filterFindings() {
+      const query = (document.getElementById('finding-search').value || '').toLowerCase();
+      const findings = auditData.findings || [];
+      const container = document.getElementById('findings-container');
+      container.innerHTML = '';
+
+      const filtered = findings.filter(f => {
+        const matchesSev = activeSeverity === 'all' || (f.severity || '').toLowerCase() === activeSeverity.toLowerCase();
+        const matchesDim = activeDimension === 'all' || f.dimension === activeDimension;
+        const text = `${f.id} ${f.title} ${f.description || ''} ${f.file || ''} ${f.dimension || ''} ${f.recommendation || ''}`.toLowerCase();
+        const matchesQuery = !query || text.includes(query);
+        return matchesSev && matchesDim && matchesQuery;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="empty-state">No findings match the selected filters.</div>';
+        return;
+      }
+
+      filtered.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'finding-card';
+        const sevClass = 'sev-' + (f.severity || 'low').toLowerCase();
+
+        card.innerHTML = `
+          <div class="finding-top">
+            <div>
+              <span class="finding-id">${f.id || 'FINDING'}</span>
+              <span class="pill" style="margin-left: 8px;">${f.dimension || 'General'}</span>
+            </div>
+            <span class="sev-badge ${sevClass}">${f.severity || 'Low'}</span>
+          </div>
+          <div class="finding-title">${f.title || 'Untitled Finding'}</div>
+          ${f.file ? `<div class="finding-loc">📍 ${f.file}${f.line ? ':' + f.line : ''}</div>` : ''}
+          <div class="finding-body">${f.description || f.rationale || 'No detailed description.'}</div>
+          <div class="finding-details">
+            ${f.recommendation ? `<div class="detail-item"><strong>Recommendation:</strong> ${f.recommendation}</div>` : ''}
+            ${f.verification ? `<div class="detail-item"><strong>Verification:</strong> ${f.verification}</div>` : ''}
+            ${f.jira_key ? `<div class="detail-item"><strong>Jira Ticket:</strong> ${f.jira_key}</div>` : ''}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderFindings() {
+      filterFindings();
+    }
+
+    function renderSnapshots() {
+      const snapshots = auditData.snapshots || [];
+      const tbody = document.getElementById('snapshots-table-body');
+      const select = document.getElementById('diff-snapshot-select');
+      tbody.innerHTML = '';
+      select.innerHTML = '<option value="">-- Select snapshot to compare --</option>';
+
+      if (!snapshots.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">No historical snapshots archived yet.</td></tr>';
+        return;
+      }
+
+      snapshots.forEach(s => {
+        const sum = s.findings_summary || {};
+        const scoreStr = s.overall_score !== null && s.overall_score !== undefined ? Number(s.overall_score).toFixed(1) : 'N/A';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${s.id}</strong></td>
+          <td>${s.date || '-'}</td>
+          <td><code>${(s.commit || '').substring(0, 8)}</code></td>
+          <td>${s.mode || '-'}</td>
+          <td><strong style="color: ${s.overall_score >= 8.5 ? 'var(--success)' : 'var(--medium)'}">${scoreStr}</strong></td>
+          <td>${sum.total || 0}</td>
+          <td>${s.tool || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.id} (${s.date} - Score ${scoreStr})`;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderSnapshotDiff() {
+      const select = document.getElementById('diff-snapshot-select');
+      const snapId = select.value;
+      const box = document.getElementById('diff-results-box');
+
+      if (!snapId) {
+        box.innerHTML = '<div class="empty-state">Select a snapshot to compare with the active audit.</div>';
+        return;
+      }
+
+      const snap = (auditData.snapshots || []).find(s => s.id === snapId);
+      if (!snap) return;
+
+      const currentFindings = auditData.findings || [];
+      const currIds = new Set(currentFindings.map(f => f.id));
+
+      // We have the snapshot findings if available, or we compare via IDs
+      const snapFindings = snap.findings || [];
+      const snapIds = new Set(snapFindings.map(f => f.id));
+
+      const resolved = snapFindings.filter(f => !currIds.has(f.id));
+      const newlyAdded = currentFindings.filter(f => !snapIds.has(f.id));
+      const scoreDelta = auditData.overall_score && snap.overall_score ? (auditData.overall_score - snap.overall_score).toFixed(1) : null;
+
+      box.innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <h3 style="color: #fff; margin-bottom: 4px;">Comparison with ${snap.id}</h3>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            Score change: <strong>${snap.overall_score || 'N/A'} ➔ ${auditData.overall_score || 'N/A'}</strong> 
+            ${scoreDelta ? `<span style="color: ${scoreDelta >= 0 ? 'var(--success)' : 'var(--critical)'}">(${scoreDelta >= 0 ? '+' + scoreDelta : scoreDelta})</span>` : ''}
+          </div>
+        </div>
+
+        <div class="diff-group">
+          <h4 style="color: var(--success);">🟢 Resolved Findings (${resolved.length})</h4>
+          ${resolved.length ? resolved.map(f => `<div class="diff-item diff-resolved"><strong>[${f.id}]</strong> ${f.title || ''} (${f.severity})</div>`).join('') : '<div style="font-size: 0.8rem; color: var(--text-subtle);">No resolved findings.</div>'}
+        </div>
+
+        <div class="diff-group">
+          <h4 style="color: var(--critical);">🔴 Newly Introduced Findings (${newlyAdded.length})</h4>
+          ${newlyAdded.length ? newlyAdded.map(f => `<div class="diff-item diff-new"><strong>[${f.id}]</strong> ${f.title || ''} (${f.severity})</div>`).join('') : '<div style="font-size: 0.8rem; color: var(--text-subtle);">No new findings introduced.</div>'}
+        </div>
+      `;
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

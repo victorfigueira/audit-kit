@@ -1,9 +1,9 @@
 # Product Backlog & Roadmap: Universal AI First-Class Support
 
 **Jira Project:** [audit-kit (AK)](https://victorsfl.atlassian.net/browse/AK-1)  
-**Total Effort:** 24 Story Points (~11 business days across 2 Sprints)  
-**Target Timeline:** 2026-10-27 to 2026-11-10  
-**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) without platform bias.
+**Total Effort:** 32 Story Points (~15 business days across 3 Sprints)  
+**Target Timeline:** 2026-10-27 to 2026-11-15  
+**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) with native snapshot history and interactive dashboard visualization.
 
 ---
 
@@ -27,7 +27,14 @@ flowchart LR
         AK13 --> AK14["AK-14: Copilot Instructions<br/>(Nov 10 | 1 SP)"]
     end
 
-    S1 --> S2
+    subgraph S3["Sprint 3: Audit History, Snapshots & Interactive Dashboard (8 SP)"]
+        direction TB
+        AK16["AK-16: Snapshot Archiving CLI<br/>(Nov 11 | 2 SP)"] --> AK17["AK-17: Snapshot Diff Engine<br/>(Nov 12 | 2 SP)"]
+        AK17 --> AK18["AK-18: Standalone HTML Dashboard<br/>(Nov 13-14 | 3 SP)"]
+        AK18 --> AK19["AK-19: Pipeline & Docs Integration<br/>(Nov 15 | 1 SP)"]
+    end
+
+    S1 --> S2 --> S3
 ```
 
 ---
@@ -50,6 +57,11 @@ flowchart LR
 | [AK-12](https://victorsfl.atlassian.net/browse/AK-12) | Task | AK-4.1: Cursor adapter and rules (`.cursorrules` / `.cursor/rules/*.mdc`) | 2 SP | 4–6 hrs | 2026-11-06 | 2026-11-06 | Done |
 | [AK-13](https://victorsfl.atlassian.net/browse/AK-13) | Task | AK-4.2: Windsurf Cascade adapter and rules (`.windsurfrules`) | 2 SP | 4–6 hrs | 2026-11-09 | 2026-11-09 | Done |
 | [AK-14](https://victorsfl.atlassian.net/browse/AK-14) | Task | AK-4.3: GitHub Copilot adapter (`.github/copilot-instructions.md`) | 1 SP | 2–3 hrs | 2026-11-10 | 2026-11-10 | Done |
+| [AK-15](https://victorsfl.atlassian.net/browse/AK-15) | **Epic** | **Phase 5: Audit History, Snapshots & Interactive Dashboard** | **8 SP** | **~3.5 days** | **2026-11-11** | **2026-11-15** | Done |
+| [AK-16](https://victorsfl.atlassian.net/browse/AK-16) | Task | AK-5.1: Snapshot archiving system and CLI (`tools/snapshot.py`) | 2 SP | 4–6 hrs | 2026-11-11 | 2026-11-11 | Done |
+| [AK-17](https://victorsfl.atlassian.net/browse/AK-17) | Task | AK-5.2: Snapshot comparison and audit diff engine (`tools/snapshot.py compare`) | 2 SP | 4–6 hrs | 2026-11-12 | 2026-11-12 | Done |
+| [AK-18](https://victorsfl.atlassian.net/browse/AK-18) | Task | AK-5.3: Standalone HTML/CSS/JS audit dashboard generator (`tools/generate_dashboard.py`) | 3 SP | 1–1.5 days | 2026-11-13 | 2026-11-14 | Done |
+| [AK-19](https://victorsfl.atlassian.net/browse/AK-19) | Task | AK-5.4: Pipeline integration in RUN.md, adapters, installer and documentation | 1 SP | 2–3 hrs | 2026-11-15 | 2026-11-15 | Done |
 
 ---
 
@@ -124,3 +136,25 @@ Add plug-and-play adapter support for the remaining major AI coding IDEs.
 * **[AK-14](https://victorsfl.atlassian.net/browse/AK-14) – AK-4.3: GitHub Copilot adapter (`.github/copilot-instructions.md`)**
   * **Scope:** Add `adapters/copilot/` with repository-level Copilot guidelines pointing to `audit-kit/RUN.md`.
   * **Acceptance Criteria:** Copilot Chat and CLI understand and respect audit-kit rules.
+
+---
+
+### Phase 5: Audit History, Snapshots & Interactive Dashboard ([AK-15](https://victorsfl.atlassian.net/browse/AK-15))
+**Target Dates:** 2026-11-11 – 2026-11-15 | **Effort:** 8 SP  
+Provide historical traceability, snapshot archiving, diff comparisons between audit runs, and a self-contained interactive HTML/CSS/JS dashboard.
+
+* **[AK-16](https://victorsfl.atlassian.net/browse/AK-16) – AK-5.1: Snapshot archiving system and CLI (`tools/snapshot.py`)**
+  * **Scope:** Create `tools/snapshot.py` to automatically copy prior `audit/` outputs to `audit/snapshots/<TIMESTAMP>_<COMMIT>/` before fresh or incremental runs, extract summary metadata, and list historical snapshots.
+  * **Acceptance Criteria:** Prior audits are archived non-destructively; `audit/project-context.md` remains at root.
+
+* **[AK-17](https://victorsfl.atlassian.net/browse/AK-17) – AK-5.2: Snapshot comparison and audit diff engine (`tools/snapshot.py compare`)**
+  * **Scope:** Implement diff engine comparing current audit against a snapshot (or two snapshots): delta scores per dimension, resolved findings, newly introduced findings, and persistent findings.
+  * **Acceptance Criteria:** CLI outputs structured summary and JSON format for integration.
+
+* **[AK-18](https://victorsfl.atlassian.net/browse/AK-18) – AK-5.3: Standalone HTML/CSS/JS audit dashboard generator (`tools/generate_dashboard.py`)**
+  * **Scope:** Implement zero-dependency, self-contained dashboard generator outputting `audit/dashboard.html`. Includes executive cards, radar/bar SVG scores, interactive searchable/filterable findings table, finding details modal, and historical trend timeline.
+  * **Acceptance Criteria:** Opens cleanly via `file://` in any modern browser without local server or CDN internet connection.
+
+* **[AK-19](https://victorsfl.atlassian.net/browse/AK-19) – AK-5.4: Pipeline integration in RUN.md, adaptadores, installer and documentation**
+  * **Scope:** Wire `tools/snapshot.py` into step 1 of `RUN.md` and `tools/generate_dashboard.py` into final steps. Add slash commands (`/audit-dashboard`), update `install.sh`, `get.sh`, `README.md`, and `docs/GUIDE.md`.
+  * **Acceptance Criteria:** Every audit automatically produces an updated `dashboard.html` and preserves snapshots without user intervention.

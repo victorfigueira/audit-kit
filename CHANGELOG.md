@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.9.0 – 26/10/2026
+- Historical Audit Snapshots: automatically archive previous audits into `audit/snapshots/<timestamp>_<commit>/` before fresh or incremental runs via `tools/snapshot.py`.
+- Audit Comparison & Diff Engine: `tools/snapshot.py compare` compares runs to report resolved findings, new findings, persistent findings, and dimension score deltas.
+- Standalone Interactive HTML Dashboard: `tools/generate_dashboard.py` generates self-contained `audit/dashboard.html` with zero external dependencies, file:// compatibility, executive score cards, searchable/filterable findings explorer, and historical timeline diffing.
+- New Command & Skill: added `/audit-dashboard` for Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf, and Copilot.
+- Integrated snapshot archiving and dashboard generation into `RUN.md` pipeline steps 1 and 10.
+
 ## 2.8.1 – 26/10/2026
 - Refined and completed `docs/GUIDE.md` documentation for modern multi-environment adapters (Cursor, Windsurf, GitHub Copilot) and deterministic token estimation fallback (`tools/usage_report.py --estimate`).
 - Updated adapter preservation guidelines and tool references across all supported environments.

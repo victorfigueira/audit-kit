@@ -13,11 +13,13 @@ This guide explains how audit-kit works, how to use it day to day and how to mai
 7. [Diff reviews](#7-diff-reviews)
 8. [Reading the results](#8-reading-the-results)
 9. [The Excel tracker](#9-the-excel-tracker)
-10. [Jira tickets](#10-jira-tickets)
-11. [Updates](#11-updates)
-12. [Customising the kit](#12-customising-the-kit)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Maintaining the kit](#14-maintaining-the-kit)
+10. [The interactive HTML dashboard](#10-the-interactive-html-dashboard)
+11. [Audit snapshots and comparisons](#11-audit-snapshots-and-comparisons)
+12. [Jira tickets](#12-jira-tickets)
+13. [Updates](#13-updates)
+14. [Customising the kit](#14-customising-the-kit)
+15. [Troubleshooting](#15-troubleshooting)
+16. [Maintaining the kit](#16-maintaining-the-kit)
 
 ## 1. What audit-kit is
 
@@ -177,6 +179,7 @@ Run `/audit` for a Standard audit or `/audit-full` for all ten dimensions. The f
 | `/audit` | Standard audit (5 dimensions), incremental when a previous audit exists |
 | `/audit-full` | Full audit (10 dimensions), incremental when a previous audit exists |
 | `/audit-diff [base]` | Reviews only the changes against a base branch and gives a merge verdict |
+| `/audit-dashboard` | Generates and opens the interactive HTML dashboard (`audit/dashboard.html`) |
 | `/audit-jira` | Proposes Jira tickets from the latest audit and creates them after approval |
 | `/audit-check-update` | Checks for a newer kit version and installs it after confirmation |
 
@@ -297,11 +300,13 @@ If the branch has more than 100 changed files or 3,000 changed lines, the triage
 | File | Content |
 |---|---|
 | `audit/AUDIT.md` | Executive summary, scores, top priorities, quick wins, items to verify |
+| `audit/dashboard.html` | Standalone interactive HTML/CSS/JS dashboard (scores, charts, searchable findings, snapshot diff) |
 | `audit/<dimension>.md` | One report per auditor, with every finding in detail |
 | `audit/findings.json` | Machine-readable findings and run metadata; input for the tracker and for incremental runs |
 | `audit/triage.md` | Plan of the last incremental run |
 | `audit/verification.md` | Verdicts of the skeptic verifier |
 | `audit/audit-tracker.xlsx` | Tracker for follow-up |
+| `audit/snapshots/` | Historical archives (`<timestamp>_<commit>/`) preserving previous audit states |
 
 ### Severities
 
@@ -391,7 +396,46 @@ The tracker needs Python 3 and `openpyxl`. To rebuild it by hand:
 python3 audit-kit/tools/generate_tracker.py
 ```
 
-## 10. Jira tickets
+## 10. The interactive HTML dashboard
+
+`audit/dashboard.html` is a standalone, interactive dashboard generated at the end of each audit run.
+
+Features:
+- **Zero dependencies & file:// compatible**: Opens directly in any browser without needing a web server, Node.js, Python server, or an internet connection.
+- **Executive score & stat cards**: Real-time gauge for the overall score, severity breakdown badges, and code size metrics.
+- **Dimension score breakdown**: Visual progress bars per dimension; clicking a dimension immediately filters the findings table.
+- **Findings explorer**: Live search box filtering across ID, title, file path, and description, paired with interactive severity filter pills (Critical, High, Medium, Low).
+- **Snapshot evolution & diff viewer**: Select and compare any historical snapshot against the active audit to inspect resolved findings, new findings, and dimension score deltas.
+
+To regenerate or open the dashboard manually:
+```bash
+python3 audit-kit/tools/generate_dashboard.py --open
+```
+Or run `/audit-dashboard` in your AI agent chat.
+
+## 11. Audit snapshots and comparisons
+
+Before any new audit run writes fresh reports, `RUN.md` automatically archives the previous audit state to `audit/snapshots/<TIMESTAMP>_<COMMIT>/` using `tools/snapshot.py`.
+
+### Snapshot features:
+- **Non-destructive**: Preserves `AUDIT.md`, `findings.json`, `verification.md`, `triage.md`, `audit-tracker.xlsx`, and dimension reports. `audit/project-context.md` remains intact at the root.
+- **List snapshots**:
+  ```bash
+  python3 audit-kit/tools/snapshot.py list
+  ```
+- **Compare runs**:
+  Compare the current audit against the latest snapshot (or two specific snapshots):
+  ```bash
+  python3 audit-kit/tools/snapshot.py compare
+  python3 audit-kit/tools/snapshot.py compare <snapshot_base> [snapshot_target]
+  ```
+  The diff engine reports:
+  - 🟢 **Resolved findings**: issues fixed since the base snapshot.
+  - 🔴 **New findings**: issues introduced in the target audit.
+  - 🟡 **Persistent findings**: issues still present, highlighting severity changes.
+  - **Score deltas**: overall and per-dimension score variations.
+
+## 12. Jira tickets
 
 After an audit, `/audit-jira` follows `JIRA.md`:
 
@@ -426,7 +470,7 @@ claude mcp add --transport http jira https://mcp.atlassian.com/v1/mcp/authv2
 
 Then run `/mcp` to sign in, and add the project key and issue type to `audit/project-context.md`.
 
-## 11. Updates
+## 13. Updates
 
 ### Automatic check
 
@@ -451,14 +495,14 @@ The kit follows `MAJOR.MINOR.PATCH`, stored in `VERSION`:
 
 The installed version is recorded in each audit (`kit_version` in `findings.json` and the header of `AUDIT.md`).
 
-## 12. Customising the kit
+## 14. Customising the kit
 
 - **Change how an auditor works:** edit `agents/<dimension>.md` in the kit repository and release a new version. Never edit the adapters in `.claude/`, `.agents/`, `.gemini/`, `.cursor/`, `.cursorrules`, `.windsurfrules` or `.github/`; they only point to the kit and the installer refreshes them.
 - **Change the rules for one project only:** use `audit/project-context.md` (accepted risks, sensitive areas, out of scope paths, allowed commands). It is never overwritten.
 - **Projects with an older audit setup:** the installer refreshes files that point to `audit-kit/` and skips any other file with the same name, reporting "skip (not an audit-kit file)". Delete or rename the old files, then run the installer again.
 - **Comparing two tools:** see [Using more than one tool](#using-more-than-one-tool).
 
-## 13. Troubleshooting
+## 15. Troubleshooting
 
 | Problem | Cause and fix |
 |---|---|
@@ -471,7 +515,7 @@ The installed version is recorded in each audit (`kit_version` in `findings.json
 | The update check says GitHub cannot be reached | Network or proxy issue. The audit continues with the installed version. |
 | A new auditor is not available as a subagent after an update | Claude Code loads subagents at session start. The manager runs it from its file this time; restart the session for the next audit. |
 
-## 14. Maintaining the kit
+## 16. Maintaining the kit
 
 This section is for whoever publishes new versions.
 

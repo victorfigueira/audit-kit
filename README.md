@@ -1,6 +1,6 @@
 # audit-kit
 
-Current version: **2.8.1** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.9.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
 A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf and GitHub Copilot. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.8.1` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf and GitHub Copilot. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.9.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -37,12 +37,12 @@ Review the file and resolve every TO CONFIRM by hand. This step has the biggest 
 
 ### 3. Run the audit
 
-| Tool | Standard | Full | Diff | Jira |
-|---|---|---|---|---|
-| Claude Code | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-jira` |
-| Antigravity | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-jira` |
-| Gemini CLI | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-jira` |
-| Any other agent | "Follow audit-kit/RUN.md, standard mode" | "Follow audit-kit/RUN.md, full mode" | "Follow audit-kit/RUN.md, diff mode against <base>" | "Follow audit-kit/JIRA.md" |
+| Tool | Standard | Full | Diff | Dashboard | Jira |
+|---|---|---|---|---|---|
+| Claude Code | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-dashboard` | `/audit-jira` |
+| Antigravity | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-dashboard` | `/audit-jira` |
+| Gemini CLI | `/audit [fresh]` | `/audit-full [fresh]` | `/audit-diff [base]` | `/audit-dashboard` | `/audit-jira` |
+| Any other agent | "Follow audit-kit/RUN.md, standard mode" | "Follow audit-kit/RUN.md, full mode" | "Follow audit-kit/RUN.md, diff mode against <base>" | "Run tools/generate_dashboard.py" | "Follow audit-kit/JIRA.md" |
 
 ### Update the kit in a project
 
