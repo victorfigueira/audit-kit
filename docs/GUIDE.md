@@ -137,9 +137,9 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - installs `openpyxl` for the Excel tracker if it is missing (a failure never stops the install);
 - creates `audit/project-context.md` if it does not exist;
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
-- copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`) and Gemini CLI (`.gemini/commands/`).
+- copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`), Gemini CLI (`.gemini/commands/`), Cursor (`.cursorrules`, `.cursor/rules/`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.8.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.8.1` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -362,7 +362,7 @@ The totals are split by type, because APIs price them differently: input, output
 The result is stored as `usage` in `findings.json`, in the "Run data" section of `AUDIT.md` and as a row of the Run log sheet in the tracker, which keeps one row per audit across runs.
 
 Limits:
-- Supported natively for Claude Code and Antigravity. In other environments the usage reports "not available" (or estimated if fallback is enabled); figures are never guessed without basis.
+- Supported natively for Claude Code and Antigravity. For other environments (Cursor, Windsurf, Copilot, etc.), token usage can be computed deterministically using `python3 audit-kit/tools/usage_report.py --estimate` based on audited file size, or reported as unavailable rather than guessing arbitrary figures.
 - The session file format is not documented and may change. If the script stops finding data, it reports "not available" rather than wrong figures.
 - On a subscription plan, tokens consume quota rather than money. To turn them into euros, multiply each type by the API price of the recorded model. You can run the check on its own at any time:
 
@@ -453,7 +453,7 @@ The installed version is recorded in each audit (`kit_version` in `findings.json
 
 ## 12. Customising the kit
 
-- **Change how an auditor works:** edit `agents/<dimension>.md` in the kit repository and release a new version. Never edit the adapters in `.claude/`, `.agents/` or `.gemini/`; they only point to the kit and the installer refreshes them.
+- **Change how an auditor works:** edit `agents/<dimension>.md` in the kit repository and release a new version. Never edit the adapters in `.claude/`, `.agents/`, `.gemini/`, `.cursor/`, `.cursorrules`, `.windsurfrules` or `.github/`; they only point to the kit and the installer refreshes them.
 - **Change the rules for one project only:** use `audit/project-context.md` (accepted risks, sensitive areas, out of scope paths, allowed commands). It is never overwritten.
 - **Projects with an older audit setup:** the installer refreshes files that point to `audit-kit/` and skips any other file with the same name, reporting "skip (not an audit-kit file)". Delete or rename the old files, then run the installer again.
 - **Comparing two tools:** see [Using more than one tool](#using-more-than-one-tool).
@@ -499,7 +499,7 @@ This section is for whoever publishes new versions.
 1. Make the change.
 2. Decide the version number with the table in [Version numbers](#version-numbers). Any change to scoring, severities or evidence rules is a major version.
 3. Update `VERSION`, the "Current version" line and the `AUDIT_KIT_REF` example in `README.md`, and add an entry at the top of `CHANGELOG.md`. The update check shows these entries to users, so write them for users.
-4. If a new adapter is needed, add it for all three tools.
+4. If a new adapter is needed, add it for all supported tools (Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf, GitHub Copilot).
 5. Test the installer in an empty git repository: `bash audit-kit/install.sh` twice (the second run should report "up to date").
 6. Commit, tag and push:
 

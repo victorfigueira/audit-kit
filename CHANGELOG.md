@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.1 – 26/10/2026
+- Refined and completed `docs/GUIDE.md` documentation for modern multi-environment adapters (Cursor, Windsurf, GitHub Copilot) and deterministic token estimation fallback (`tools/usage_report.py --estimate`).
+- Updated adapter preservation guidelines and tool references across all supported environments.
+
 ## 2.8.0 – 26/10/2026
 - New AI IDE adapters: added support and dedicated rule packages for Cursor (`.cursorrules`, `.cursor/rules/audit.mdc`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
 - Multi-target installation options updated for `cursor`, `windsurf`, and `copilot`.
