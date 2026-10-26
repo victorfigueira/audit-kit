@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.7.1 – 26/10/2026
+- Universal subagent dispatch protocol in `RUN.md`: formalized explicit execution strategies for Claude Code, Antigravity, and single-threaded sequential agents.
+
 ## 2.7.0 – 26/10/2026
 - Deterministic token estimation fallback in `tools/usage_report.py`: calculates model-neutral token estimates (4 chars/token) from code in scope and audit report outputs when native session logs are absent.
 - Added `--estimate` and `--no-fallback` CLI options.

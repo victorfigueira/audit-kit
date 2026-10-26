@@ -25,9 +25,28 @@ If the user did not say which mode, use Standard. Diff mode has its own steps (s
 
 Standard and Full are incremental when `audit/findings.json` exists: dimensions that the changes since the previous audit do not affect are carried over instead of audited again. The triage agent decides, following `audit-kit/agents/triage.md`. The run is fresh (every auditor of the mode runs) when there is no previous audit, when the user asks for a fresh audit (for example `/audit fresh`), or when the triage agent forces it. Use fresh runs for quarterly audits and before go-live.
 
-## Subagent prompts
+## Subagent prompts and dispatch strategies
 
-When you start any subagent (auditor, triage agent or skeptic verifier), make the first line of its prompt `audit-kit-agent: <name>`, where `<name>` is the agent file name without `.md` (for example `audit-kit-agent: security`, `audit-kit-agent: triage`, `audit-kit-agent: skeptic-verifier`). `usage_report.py` uses this line to attribute tokens to each agent.
+When starting any subagent or auditor run (triage, dimension auditor, skeptic verifier), always make the first line of its prompt `audit-kit-agent: <name>`, where `<name>` is the agent identifier without `.md` (e.g. `audit-kit-agent: security`, `audit-kit-agent: triage`, `audit-kit-agent: skeptic-verifier`). `tools/usage_report.py` uses this header for token attribution.
+
+Choose the execution strategy that matches your platform:
+
+1. **Claude Code (Multi-agent concurrent):**
+   - Dispatch the predefined subagents from `.claude/agents/*-auditor.md`.
+   - Tool permissions are enforced per adapter (`tools: Read, Grep, Glob, Bash, Write`).
+   - Launch all active auditors in parallel where supported.
+
+2. **Google Antigravity (Multi-agent concurrent):**
+   - Dispatch subagents concurrently with the native tool:
+     `invoke_subagent(TypeName='self', Role='<Dimension> Auditor', Prompt='audit-kit-agent: <name>\n...', Workspace='inherit')`.
+   - Refer to `audit-kit/adapters/antigravity/subagents.md` for role and prompt matrices.
+   - Dispatch all auditors in a single turn and await completion reactively.
+
+3. **Sequential / Single-Context Agents (Gemini CLI, Cursor, Windsurf, Copilot, CLI):**
+   - Run auditors one after another, resetting or cleaning focus between dimensions.
+   - Reread `audit-kit/agents/<name>.md` and `audit-kit/RULES.md` at the start of each dimension.
+   - Ensure context isolation: findings from one dimension must never bias another.
+   - Each auditor writes strictly to `audit/<name>.md`.
 
 ## Steps
 
@@ -57,7 +76,7 @@ When you start any subagent (auditor, triage agent or skeptic verifier), make th
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.7.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.7.1",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
