@@ -80,7 +80,7 @@ Choose the execution strategy that matches your platform:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.2",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.3",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.11.3 – 26/10/2026
+- Added visual Mermaid architecture diagram and comprehensive Roles Breakdown for the Audit Team in `README.md`.
+- Synchronized documentation version references to `v2.11.3`.
+
 ## 2.11.2 – 26/10/2026
 - Silent Batch CVSS v3.1 Calculation: added automated in-memory finding enrichment in `tools/generate_dashboard.py` and `tools/cvss.py`, eliminating repetitive individual CLI executions per finding.
 - Security Auditor Workflow Refinement: updated `agents/security.md` to explicitly forbid executing shell commands per finding, avoiding disruptive terminal permission prompts.

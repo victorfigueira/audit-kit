@@ -141,7 +141,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`), Gemini CLI (`.gemini/commands/`), Cursor (`.cursorrules`, `.cursor/rules/`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.11.2` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.11.3` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 

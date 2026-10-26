@@ -1,10 +1,63 @@
 # audit-kit
 
-Current version: **2.11.2** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.11.3** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
-A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
+A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker, an interactive HTML dashboard and, optionally, Jira tickets.
 
 Drop this folder into the root of any project. It works with Claude Code, Antigravity (Gemini), Gemini CLI, Cursor, Windsurf, GitHub Copilot or any agent that can read files.
+
+---
+
+## The Audit Team
+
+```mermaid
+flowchart TD
+    Codebase["Repository Codebase & Context<br/>audit/project-context.md"] --> MGR["Audit Manager<br/>Orchestrator"]
+
+    subgraph PreFlight["Pre-flight & Triage"]
+        MGR --> Size["Code Size Check<br/>tools/size_check.py"]
+        MGR --> Snap["Snapshot Previous Audit<br/>tools/snapshot.py"]
+        MGR --> Triage["Incremental Triage<br/>tools/triage_check.py"]
+    end
+
+    subgraph Auditors["Specialized Read-Only Auditors"]
+        Triage -->|Standard & Full| SEC["Security Auditor<br/>CVSS v3.1 Scoring"]
+        Triage -->|Standard & Full| ARC["Architecture Auditor"]
+        Triage -->|Standard & Full| MNT["Maintainability Auditor"]
+        Triage -->|Standard & Full| REL["Reliability Auditor"]
+        Triage -->|Standard & Full| OSH["Open Source Health Auditor"]
+        Triage -->|Full Mode| EXT["Extended Auditors<br/>Performance · Testing · Observability<br/>Compliance · Cloud Cost"]
+    end
+
+    subgraph VerifierGate["Quality Gate: Skeptic Verifier"]
+        SEC -->|Critical & High Findings| VER["Skeptic Verifier<br/>Counterweight Gate"]
+        ARC -->|Critical & High Findings| VER
+        MNT -->|Critical & High Findings| VER
+        REL -->|Critical & High Findings| VER
+        EXT -->|Critical & High Findings| VER
+        VER -->|Reject False Positives / Downgrade| Dedupe["Deduplication & Final Scoring"]
+    end
+
+    subgraph Deliverables["Outputs & Dashboards"]
+        Dedupe --> Dash["Interactive HTML Dashboard<br/>audit/dashboard.html"]
+        Dedupe --> Rep["Executive Report<br/>audit/AUDIT.md & findings.json"]
+        Dedupe --> Trk["Excel Tracker<br/>audit/audit-tracker.xlsx"]
+        Dedupe --> Jira["Jira Ticket Proposals<br/>/audit-jira"]
+    end
+```
+
+### Roles Breakdown
+
+* **manager (Audit Manager & Orchestrator):** Coordinates the audit run, checks code size (`size_check.py`), archives historical snapshots (`snapshot.py`), calculates USD cost & token usage (`usage_report.py`), deduplicates findings across dimensions, and computes final 1–10 scores.
+* **security (Security Auditor):** Reviews authentication, authorization, injection vectors, secrets in code/git history, and computes official FIRST.org **CVSS v3.1** Base Scores & vectors (`CVSS:3.1/...`) without disruptive terminal prompts.
+* **architecture (Architecture Auditor):** Examines component boundaries, circular dependencies, domain coupling, layering violations, and modularity.
+* **maintainability (Maintainability Auditor):** Identifies cognitive complexity, dead code, technical debt, duplication, and poor naming.
+* **reliability (Reliability Auditor):** Detects unhandled exceptions, crash risks, resource leaks, race conditions, and missing timeouts.
+* **open-source-health (Open Source Health Auditor):** Audits dependency vulnerabilities (`npm audit`, `pip-audit`), outdated libraries, unmaintained dependencies, and license risks.
+* **full-mode-auditors (Extended Dimensions):** Five additional deep-dive dimensions for Full mode: *Performance & Scalability*, *Testing & QA*, *Observability & Operability*, *Data & Privacy Compliance (GDPR)*, and *Infra, CI/CD & Cloud Cost*.
+* **skeptic-verifier (Skeptic Verifier & Quality Gate):** The counterweight to AI false positives. Evaluates every Critical and High finding in isolation, reads surrounding code, and issues strict verdicts (*Confirmed*, *Downgraded*, *Rejected*, *Inconclusive*). Rejected findings leave the report and do not count toward scores.
+
+---
 
 ## Set up a new project
 
@@ -16,7 +69,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf and GitHub Copilot. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.11.2` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity, Gemini CLI, Cursor, Windsurf and GitHub Copilot. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.11.3` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
