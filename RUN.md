@@ -80,7 +80,7 @@ Choose the execution strategy that matches your platform:
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.0",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.11.1",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",
@@ -108,6 +108,7 @@ Choose the execution strategy that matches your platform:
    - `rejected` lists the findings the verifier rejected in this run and those carried over from dimensions that did not run, each with `id`, `dimension`, `title`, `location` and `reason`. They never count in scores.
    - `run_type` is `Fresh` or `Incremental`.
    - `untracked_hashes` copies the map from `triage_check.py`, so the next run can tell which untracked files changed.
+   - **Shell quoting note:** If writing `findings.json` via a shell script or heredoc, always quote the delimiter (`cat << 'EOF' > audit/findings.json`) or write via editor tools to prevent shell parameter expansion (e.g. zsh expanding `$0` in `$0.11` to `zsh.11`).
    - `usage` is the output of `usage_report.py`, unchanged. Together with `model` and `code_size`, it lets the user work out the cost of a run outside the kit.
    - `code_size` copies `files`, `lines`, `estimated_tokens` and `method` from the size check, or is `"not available"`. Together with `model`, it lets the user estimate the cost of future runs.
    - `context_hash` is the hash reported by `triage_check.py`, so the next run can tell whether the project context changed.

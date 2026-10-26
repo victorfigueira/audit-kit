@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.1 – 26/10/2026
+- Fixed shell variable parameter expansion bug where unquoted shell heredocs or echoes expanded `$0` in `$0.11` to `zsh.11` and `$3`/`$15` in pricing labels to empty strings.
+- Added resilient numeric cost parsing and formatting in `templates/dashboard.html` that extracts numeric `total_usd` and formats `$X.XX`.
+- Removed raw shell parameter signs from model pricing labels in `tools/usage_report.py`.
+- Added shell quoting guidance in `RUN.md` Step 8.
+
 ## 2.11.0 – 26/10/2026
 - CVSS v3.1 Security Scoring Engine: implemented FIRST.org official mathematical specification for CVSS v3.1 Base Score calculation, vector validation, and serialization in `tools/cvss.py`.
 - Security Auditor & Skeptic Verifier Specifications: updated `agents/security.md` to compute CVSS vectors per finding and `agents/skeptic-verifier.md` to challenge vector metrics (AV, PR, AC).

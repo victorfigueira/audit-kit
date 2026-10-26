@@ -456,15 +456,28 @@
 
       // Cost calculation display
       const usage = auditData.usage || {};
-      const cost = usage.cost || {};
-      const costFormatted = cost.formatted || (cost.total_usd !== undefined ? '$' + cost.total_usd.toFixed(2) : (auditData.cost ? auditData.cost.formatted : null));
+      const cost = usage.cost || auditData.cost || {};
+      let totalUsd = null;
+      if (typeof cost.total_usd === 'number') {
+        totalUsd = cost.total_usd;
+      } else if (cost.total_usd !== undefined && cost.total_usd !== null) {
+        totalUsd = parseFloat(cost.total_usd);
+      } else if (cost.formatted) {
+        // Fallback: extract numeric value even if shell expanded $0 to 'zsh' (e.g. 'zsh.11' -> 0.11)
+        const digits = String(cost.formatted).replace(/[^0-9.]/g, '');
+        if (digits) totalUsd = parseFloat(digits.startsWith('.') ? '0' + digits : digits);
+      }
+
       const cardCost = document.getElementById('card-cost');
       const cardCostSub = document.getElementById('card-cost-sub');
-      if (costFormatted) {
-        cardCost.textContent = costFormatted;
+      if (totalUsd !== null && !isNaN(totalUsd)) {
+        cardCost.textContent = '$' + totalUsd.toFixed(2);
         const totalTok = usage.totals?.total_tokens || usage.total_tokens;
         const tokStr = totalTok ? totalTok.toLocaleString() + ' tokens' : (auditData.code_size?.estimated_tokens ? '~' + auditData.code_size.estimated_tokens.toLocaleString() + ' tokens' : '');
-        cardCostSub.textContent = tokStr ? `${tokStr} (${cost.pricing_applied || 'API list pricing'})` : (cost.pricing_applied || 'API list pricing');
+        let pricingLabel = cost.pricing_applied || 'API list pricing';
+        // Repair any shell-corrupted labels like (.00/.00)
+        pricingLabel = pricingLabel.replace('.00/.00', '3.00/15.00 USD');
+        cardCostSub.textContent = tokStr ? `${tokStr} (${pricingLabel})` : pricingLabel;
       } else {
         cardCost.textContent = 'N/A';
         cardCostSub.textContent = 'Token telemetry unavailable';
@@ -585,7 +598,15 @@
       snapshots.forEach(s => {
         const sum = s.findings_summary || {};
         const scoreStr = s.overall_score !== null && s.overall_score !== undefined ? Number(s.overall_score).toFixed(1) : 'N/A';
-        const costStr = s.cost?.formatted || s.usage?.cost?.formatted || '-';
+        const sCost = s.cost || s.usage?.cost || {};
+        let sUsd = null;
+        if (typeof sCost.total_usd === 'number') sUsd = sCost.total_usd;
+        else if (sCost.total_usd !== undefined && sCost.total_usd !== null) sUsd = parseFloat(sCost.total_usd);
+        else if (sCost.formatted) {
+          const d = String(sCost.formatted).replace(/[^0-9.]/g, '');
+          if (d) sUsd = parseFloat(d.startsWith('.') ? '0' + d : d);
+        }
+        const costStr = (sUsd !== null && !isNaN(sUsd)) ? '$' + sUsd.toFixed(2) : '-';
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${s.id}</strong></td>

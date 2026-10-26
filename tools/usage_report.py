@@ -44,7 +44,7 @@ MODEL_PRICING = {
     "o3-mini": {"input": 1.10, "output": 4.40, "cache_write": 1.10, "cache_read": 0.55, "label": "OpenAI o3-mini"},
 
     # Standard model fallback (Sonnet-tier baseline)
-    "default": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30, "label": "Standard AI Model ($3.00/$15.00 per 1M)"}
+    "default": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30, "label": "Standard AI Model (3.00 / 15.00 USD per 1M)"}
 }
 
 

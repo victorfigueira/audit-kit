@@ -82,6 +82,7 @@ flowchart LR
 | [AK-25](https://victorsfl.atlassian.net/browse/AK-25) | Task | AK-7.1: CVSS v3.1 calculation engine and validator (`tools/cvss.py`) | 2 SP | 4–6 hrs | 2026-11-19 | 2026-11-19 | Done |
 | [AK-26](https://victorsfl.atlassian.net/browse/AK-26) | Task | AK-7.2: Update security auditor and skeptic verifier specifications | 2 SP | 4–6 hrs | 2026-11-20 | 2026-11-20 | Done |
 | [AK-27](https://victorsfl.atlassian.net/browse/AK-27) | Task | AK-7.3: Render CVSS badges and vector metrics in HTML dashboard & reports | 2 SP | 4–6 hrs | 2026-11-21 | 2026-11-21 | Done |
+| [AK-28](https://victorsfl.atlassian.net/browse/AK-28) | Bug | Bug: Prevent shell parameter expansion in cost formatting | 1 SP | 1 hr | 2026-11-21 | 2026-11-21 | Done |
 
 ---
 
