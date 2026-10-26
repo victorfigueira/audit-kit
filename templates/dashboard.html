@@ -535,11 +535,20 @@
         card.className = 'finding-card';
         const sevClass = 'sev-' + (f.severity || 'low').toLowerCase();
 
+        let cvssBadge = '';
+        if (f.cvss) {
+          const cvssScore = typeof f.cvss === 'object' ? f.cvss.score : f.cvss;
+          const cvssRating = typeof f.cvss === 'object' ? (f.cvss.rating || '') : '';
+          const cvssVector = typeof f.cvss === 'object' ? (f.cvss.vector || '') : '';
+          cvssBadge = `<span class="pill" style="margin-left: 8px; border-color: #ef4444; color: #f87171; font-weight: 700;" title="${cvssVector}">CVSS ${cvssScore} ${cvssRating ? '(' + cvssRating + ')' : ''}</span>`;
+        }
+
         card.innerHTML = `
           <div class="finding-top">
             <div>
               <span class="finding-id">${f.id || 'FINDING'}</span>
               <span class="pill" style="margin-left: 8px;">${f.dimension || 'General'}</span>
+              ${cvssBadge}
             </div>
             <span class="sev-badge ${sevClass}">${f.severity || 'Low'}</span>
           </div>
@@ -550,6 +559,7 @@
             ${f.recommendation ? `<div class="detail-item"><strong>Recommendation:</strong> ${f.recommendation}</div>` : ''}
             ${f.verification ? `<div class="detail-item"><strong>Verification:</strong> ${f.verification}</div>` : ''}
             ${f.jira_key ? `<div class="detail-item"><strong>Jira Ticket:</strong> ${f.jira_key}</div>` : ''}
+            ${f.cvss && typeof f.cvss === 'object' && f.cvss.vector ? `<div class="detail-item" style="grid-column: 1 / -1;"><strong>CVSS v3.1 Vector:</strong> <code>${f.cvss.vector}</code></div>` : ''}
           </div>
         `;
         container.appendChild(card);

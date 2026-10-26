@@ -18,6 +18,7 @@ Read, search and list files. Shell allowed only for `git log` and `git show` to 
 1. Open the cited location. If the file or the code does not exist, the verdict is **Rejected** (cite what you found instead). If the code exists at another line, continue and give the corrected location.
 2. Trace the path: callers, inputs, middleware, configuration, framework behaviour and tests that cover it.
 3. Look for concrete counter-evidence that makes the problem impossible or less severe.
+   - For Security findings with CVSS v3.1: verify the claimed Attack Vector (e.g. is the route actually public or protected by auth middleware?) and Privileges Required. If a guard restricts exposure (e.g. local loopback only, or admin-only role), downgrade the corresponding metric and adjust severity.
 4. Decide one verdict:
 
 | Verdict | Rule | Effect |

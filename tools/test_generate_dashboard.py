@@ -28,7 +28,20 @@ class TestGenerateDashboard(unittest.TestCase):
             "overall_score": 8.5,
             "scores": {"Maintainability": 8.0, "Security": 9.0},
             "findings": [
-                {"id": "SEC-001", "severity": "High", "title": "SQL Injection in auth", "dimension": "Security", "file": "src/auth.py", "line": 42}
+                {
+                    "id": "SEC-001",
+                    "severity": "High",
+                    "title": "SQL Injection in auth",
+                    "dimension": "Security",
+                    "file": "src/auth.py",
+                    "line": 42,
+                    "cvss": {
+                        "version": "3.1",
+                        "score": 8.8,
+                        "rating": "High",
+                        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+                    }
+                }
             ]
         }
         with open(os.path.join(self.audit_dir, "findings.json"), "w") as f:
@@ -52,6 +65,8 @@ class TestGenerateDashboard(unittest.TestCase):
         self.assertIn("test-repo", content)
         self.assertIn("SEC-001", content)
         self.assertIn("SQL Injection in auth", content)
+        self.assertIn("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N", content)
+        self.assertIn("CVSS ${cvssScore}", content)
         self.assertIn("Estimated Cost", content)
         self.assertIn("snap1", content)
         self.assertIn("<!DOCTYPE html>", content)

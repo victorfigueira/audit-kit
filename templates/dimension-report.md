@@ -13,6 +13,7 @@ Project: <name> · Branch: <branch> · Commit: <short hash> · Date: <YYYY-MM-DD
 ### <ID> · <Title>
 - Severity: Critical | High | Medium | Low
 - Location: <file:line>
+- CVSS v3.1: <Score> (<Rating>) · <Vector> (for Security findings)
 - Evidence: <what was observed; secrets masked, no personal data>
 - Impact: <why it matters>
 - Recommendation: <concrete fix>

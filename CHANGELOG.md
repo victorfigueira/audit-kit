@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.0 – 26/10/2026
+- CVSS v3.1 Security Scoring Engine: implemented FIRST.org official mathematical specification for CVSS v3.1 Base Score calculation, vector validation, and serialization in `tools/cvss.py`.
+- Security Auditor & Skeptic Verifier Specifications: updated `agents/security.md` to compute CVSS vectors per finding and `agents/skeptic-verifier.md` to challenge vector metrics (AV, PR, AC).
+- Interactive Dashboard Badges: rendered colored CVSS pills and vector tooltips in `audit/dashboard.html` for all security findings.
+- Comprehensive Test Suite: added FIRST.org reference vector tests in `tools/test_cvss.py`.
+
 ## 2.10.0 – 26/10/2026
 - Automated Audit Cost Calculation: added pricing matrix for Anthropic (Claude Opus, Sonnet, Haiku), Google Gemini (Pro, Flash), and OpenAI (GPT-4o, o1, o3-mini) with automatic USD cost calculation for input, output, and cache tokens in `tools/usage_report.py`.
 - Financial Metrics in Dashboard: added dedicated Audit Cost card in `templates/dashboard.html` and cost history tracking across snapshots.

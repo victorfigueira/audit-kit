@@ -141,7 +141,7 @@ curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.s
 - adds a short rules section to `AGENTS.md` (and `CLAUDE.md` for Claude Code, `GEMINI.md` if present for Antigravity), between `<!-- audit-kit:start -->` and `<!-- audit-kit:end -->`;
 - copies the adapters for Claude Code (`.claude/`), Antigravity (`.agents/skills/`, `.agents/rules/` and legacy `.agents/workflows/`), Gemini CLI (`.gemini/commands/`), Cursor (`.cursorrules`, `.cursor/rules/`), Windsurf (`.windsurfrules`), and GitHub Copilot (`.github/copilot-instructions.md`).
 
-To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.10.0` before `bash`.
+To install for one tool only, add its name: `| bash -s -- claude` (or `antigravity`, `gemini`, `cursor`, `windsurf`, `copilot`). To pin a version, put `AUDIT_KIT_REF=v2.11.0` before `bash`.
 
 Reload the IDE window afterwards so the new commands appear.
 
@@ -316,6 +316,14 @@ If the branch has more than 100 changed files or 3,000 changed lines, the triage
 | High | Serious risk or blocker; likely to cause incidents | Fix this sprint |
 | Medium | Real issue with limited impact or a workaround | Plan this quarter |
 | Low | Improvement or hygiene | Backlog |
+
+### CVSS v3.1 scoring for Security findings
+
+In addition to the qualitative 4-level severity scale, every finding in the **Security** dimension (`SEC-NNN`) includes an official FIRST.org **CVSS v3.1 Base Score and Vector**:
+- **Vector format:** `CVSS:3.1/AV:[N|A|L|P]/AC:[L|H]/PR:[N|L|H]/UI:[N|R]/S:[U|C]/C:[N|L|H]/I:[N|L|H]/A:[N|L|H]`
+- Evaluates attack vector (Network, Adjacent, Local, Physical), complexity, required privileges, user interaction, scope, and CIA impacts.
+- Calculated and validated mathematically via `tools/cvss.py`.
+- Rendered with interactive badges and vector inspection in `audit/dashboard.html`, and serialized in `audit/findings.json` and Jira proposals.
 
 ### Scores
 

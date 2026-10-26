@@ -1,9 +1,9 @@
 # Product Backlog & Roadmap: Universal AI First-Class Support
 
 **Jira Project:** [audit-kit (AK)](https://victorsfl.atlassian.net/browse/AK-1)  
-**Total Effort:** 37 Story Points (~18 business days across 4 Sprints)  
-**Target Timeline:** 2026-10-27 to 2026-11-18  
-**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) with native snapshot history, interactive dashboard visualization, and automated audit cost calculation.
+**Total Effort:** 43 Story Points (~21 business days across 5 Sprints)  
+**Target Timeline:** 2026-10-27 to 2026-11-21  
+**Objective:** Evolve `audit-kit` into a 100% first-class citizen across all major AI agent ecosystems (Antigravity, Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot) with native snapshot history, interactive dashboard visualization, automated audit cost calculation, and industry-standard CVSS v3.1 security vulnerability scoring.
 
 ---
 
@@ -40,7 +40,13 @@ flowchart LR
         AK22 --> AK23["AK-23: Clickable Link & Chat UX<br/>(Nov 18 | 1 SP)"]
     end
 
-    S1 --> S2 --> S3 --> S4
+    subgraph S5["Sprint 5: Security Standards & CVSS v3.1 Scoring (6 SP)"]
+        direction TB
+        AK25["AK-25: CVSS v3.1 Engine<br/>(Nov 19 | 2 SP)"] --> AK26["AK-26: Security & Verifier Specs<br/>(Nov 20 | 2 SP)"]
+        AK26 --> AK27["AK-27: Dashboard & Report CVSS<br/>(Nov 21 | 2 SP)"]
+    end
+
+    S1 --> S2 --> S3 --> S4 --> S5
 ```
 
 ---
@@ -72,6 +78,10 @@ flowchart LR
 | [AK-21](https://victorsfl.atlassian.net/browse/AK-21) | Task | AK-6.1: Cost calculation engine and pricing matrix in `usage_report.py` | 2 SP | 4–6 hrs | 2026-11-16 | 2026-11-16 | Done |
 | [AK-22](https://victorsfl.atlassian.net/browse/AK-22) | Task | AK-6.2: Financial cost card & metrics in HTML dashboard & generator | 2 SP | 4–6 hrs | 2026-11-17 | 2026-11-17 | Done |
 | [AK-23](https://victorsfl.atlassian.net/browse/AK-23) | Task | AK-6.3: One-click `file://` dashboard link & cost reporting in `RUN.md` | 1 SP | 2–3 hrs | 2026-11-18 | 2026-11-18 | Done |
+| [AK-24](https://victorsfl.atlassian.net/browse/AK-24) | **Epic** | **Phase 7: Security Standards & CVSS v3.1 Scoring** | **6 SP** | **~2.5 days** | **2026-11-19** | **2026-11-21** | Done |
+| [AK-25](https://victorsfl.atlassian.net/browse/AK-25) | Task | AK-7.1: CVSS v3.1 calculation engine and validator (`tools/cvss.py`) | 2 SP | 4–6 hrs | 2026-11-19 | 2026-11-19 | Done |
+| [AK-26](https://victorsfl.atlassian.net/browse/AK-26) | Task | AK-7.2: Update security auditor and skeptic verifier specifications | 2 SP | 4–6 hrs | 2026-11-20 | 2026-11-20 | Done |
+| [AK-27](https://victorsfl.atlassian.net/browse/AK-27) | Task | AK-7.3: Render CVSS badges and vector metrics in HTML dashboard & reports | 2 SP | 4–6 hrs | 2026-11-21 | 2026-11-21 | Done |
 
 ---
 
@@ -186,3 +196,21 @@ Automate calculation of audit cost (USD) based on tokens consumed and AI model u
 * **[AK-23](https://victorsfl.atlassian.net/browse/AK-23) – AK-6.3: One-click `file://` dashboard link & cost reporting in `RUN.md`**
   * **Scope:** Update `RUN.md` reporting step to output absolute clickable markdown link `[Open Dashboard](file:///...)` and audit cost in chat summary.
   * **Acceptance Criteria:** User can click link directly in chat to open `dashboard.html` in browser.
+
+---
+
+### Phase 7: Security Standards & CVSS v3.1 Scoring ([AK-24](https://victorsfl.atlassian.net/browse/AK-24))
+**Target Dates:** 2026-11-19 – 2026-11-21 | **Effort:** 6 SP  
+Introduce official FIRST.org CVSS v3.1 Base Score calculation, vector serialization, skeptic verification guidelines, and interactive dashboard badges for security findings.
+
+* **[AK-25](https://victorsfl.atlassian.net/browse/AK-25) – AK-7.1: CVSS v3.1 calculation engine and validator (`tools/cvss.py`)**
+  * **Scope:** Implement official FIRST.org mathematical formula for CVSS v3.1 Base Score, vector parser/validator, and CLI tool.
+  * **Acceptance Criteria:** Correctly scores standard test vectors (e.g. Heartbleed, SQLi, XSS) with comprehensive unit tests.
+
+* **[AK-26](https://victorsfl.atlassian.net/browse/AK-26) – AK-7.2: Update security auditor and skeptic verifier specifications**
+  * **Scope:** Update `agents/security.md` and report templates to compute CVSS vector for each `SEC-NNN` finding. Guide `agents/skeptic-verifier.md` to challenge attack vector metrics.
+  * **Acceptance Criteria:** Security findings contain full CVSS v3.1 vector string and numeric score.
+
+* **[AK-27](https://victorsfl.atlassian.net/browse/AK-27) – AK-7.3: Render CVSS badges and vector metrics in HTML dashboard & reports**
+  * **Scope:** Add CVSS badge pills and vector inspection modals/tooltips in `templates/dashboard.html` and `findings.json`.
+  * **Acceptance Criteria:** Security cards in the dashboard clearly display colored CVSS scores and vector details.
