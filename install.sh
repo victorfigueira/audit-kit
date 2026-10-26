@@ -26,6 +26,28 @@ copy_dir() { # src dst
   done
 }
 
+copy_skills() { # src dst
+  mkdir -p "$2"
+  for s in "$1"/*; do
+    [ -d "$s" ] || continue
+    local sname="$(basename "$s")"
+    mkdir -p "$2/$sname"
+    for f in "$s"/*; do
+      [ -f "$f" ] || continue
+      local dest="$2/$sname/$(basename "$f")"
+      if [ ! -e "$dest" ]; then
+        cp "$f" "$dest"; echo "  added: $dest"
+      elif cmp -s "$f" "$dest"; then
+        echo "  up to date: $dest"
+      elif grep -q "audit-kit" "$dest" 2>/dev/null; then
+        cp "$f" "$dest"; echo "  updated: $dest"
+      else
+        echo "  skip (not an audit-kit file): $dest"
+      fi
+    done
+  done
+}
+
 add_rules() { # file
   if [ -f "$1" ] && grep -q "audit-kit:start" "$1"; then
     echo "  skip (already has audit rules): $1"
@@ -67,6 +89,9 @@ if [ "$TARGET" = claude ] || [ "$TARGET" = all ]; then
 fi
 if [ "$TARGET" = antigravity ] || [ "$TARGET" = all ]; then
   echo "Antigravity:"
+  if [ -d "$KIT/adapters/antigravity/skills" ]; then
+    copy_skills "$KIT/adapters/antigravity/skills" .agents/skills
+  fi
   copy_dir "$KIT/adapters/antigravity/workflows" .agents/workflows
 fi
 if [ "$TARGET" = gemini ] || [ "$TARGET" = all ]; then

@@ -1,0 +1,4 @@
+---
+description: Check if a newer version of audit-kit is available on GitHub and install it after confirmation
+---
+Follow `audit-kit/UPDATE.md` step-by-step. Read the installed version from `audit-kit/VERSION`, compare with GitHub, summarise changes if newer, and wait for confirmation before installing.

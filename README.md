@@ -1,6 +1,6 @@
 # audit-kit
 
-Current version: **2.3.2** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
+Current version: **2.4.0** (see `CHANGELOG.md`). Full documentation: [docs/GUIDE.md](docs/GUIDE.md).
 
 A portable code audit team: ten read-only auditors, a skeptic verifier that filters out false positives and a manager that consolidates their reports into a scored summary, an Excel tracker and, optionally, Jira tickets.
 
@@ -16,7 +16,7 @@ From the root of the project you want to audit:
 curl -fsSL https://raw.githubusercontent.com/victorfigueira/audit-kit/main/get.sh | bash
 ```
 
-This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.3.2` before `bash`.
+This downloads the kit into `audit-kit/` and installs the commands for Claude Code, Antigravity and Gemini CLI. For one tool only, add its name at the end: `| bash -s -- antigravity` (or `claude`, `gemini`). To pin a version, put `AUDIT_KIT_REF=v2.4.0` before `bash`.
 
 If the project repository is public, keep the reports and the kit copy out of git:
 
@@ -104,7 +104,7 @@ All outputs go to `audit/` in the project:
 |---|---|
 | All | `AGENTS.md` (shared rules section), `audit/project-context.md` |
 | Claude Code | `.claude/agents/*-auditor.md`, `.claude/agents/audit-triage.md`, `.claude/agents/skeptic-verifier.md`, `.claude/commands/*.md`, section in `CLAUDE.md` |
-| Antigravity | `.agents/workflows/*.md` (older versions used `.agent/`; both are read) |
+| Antigravity | `.agents/skills/*/SKILL.md`, `.agents/workflows/*.md` (legacy support) |
 | Gemini CLI | `.gemini/commands/*.toml` |
 
 Adapters only point to the files in this folder. To change how an auditor works, edit `agents/<name>.md` here, never the adapter.

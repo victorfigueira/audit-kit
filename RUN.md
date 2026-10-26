@@ -55,7 +55,7 @@ When you start any subagent (auditor, triage agent or skeptic verifier), make th
    ```json
    {
      "project": "name", "branch": "main", "commit": "abc1234",
-     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.3.2",
+     "date": "YYYY-MM-DD", "mode": "Standard", "kit_version": "2.4.0",
      "context_hash": "<sha256 of audit/project-context.md>",
      "tool": "Claude Code", "model": "claude-opus-5-5",
      "run_type": "Fresh",

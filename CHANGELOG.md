@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0 – 26/10/2026
+- New Antigravity Skills adapter: modern `.agents/skills/<name>/SKILL.md` packages for `/audit`, `/audit-full`, `/audit-diff`, `/audit-jira`, and `/audit-check-update`, providing first-class slash commands and progressive disclosure in Google Antigravity.
+- Legacy Antigravity `.agents/workflows/` are preserved for backward compatibility.
+- New update check adapters: added explicit `/audit-check-update` commands for Claude Code, Antigravity, and Gemini CLI.
+- `install.sh` automatically installs both modern skills and legacy workflows for Antigravity.
+
 ## 2.3.2 – 23/10/2026
 - Fix: untracked files count as changed only when their hash differs from the previous audit (`untracked_hashes` in `findings.json`). Before, any untracked file reran the auditors on every incremental audit.
 - Fix: auditors never audit the kit itself (its folders, the audit-kit sections of `AGENTS.md` and `CLAUDE.md`, and the installed adapters).
